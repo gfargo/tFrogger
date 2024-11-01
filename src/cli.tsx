@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { render } from 'ink'
 import React from 'react'
-import App from './app.js'
+import Game from './Game.js'
 
 // For CLI Options and Arguments.., use meow
 // import meow from 'meow';
@@ -25,4 +25,5 @@ import App from './app.js'
 // 	},
 // );
 
-render(<App />)
+render(<Game />)
+
