@@ -6,12 +6,12 @@ export const RIVER_HEIGHT = 6;
 export const TILES = {
   FROG: '🐸',
   CAR: '🚗',
-  LOG: '🪵',
-  RIVER: '~',
-  ROAD: '-',
-  GOAL: '#',
-  EMPTY: ' ',
+  LOG: '🌳',
+  RIVER: '🟦',
+  ROAD: '⬜️',
+  GOAL: '🏁',
+  EMPTY: '⬛️',
 };
 
-export const GAME_SPEED = 250; // milliseconds
+export const GAME_SPEED = 200; // milliseconds
 
