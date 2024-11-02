@@ -103,18 +103,10 @@ const Game = () => {
         })
       }
     }
-
-    console.log('!! initializeObstacles', newObstacles.length)
-
     setObstacles(newObstacles)
   }, [])
 
   const moveObstacles = useCallback(() => {
-    console.log('moveObstacles', {
-      frogState: frogStateRef.current,
-      obstaclesCount: obstaclesRef.current.length,
-    })
-
     setObstacles((prevObstacles) => {
       const newObstacles = prevObstacles.map((obstacle) => {
         const newX =
@@ -150,14 +142,6 @@ const Game = () => {
                   : (updatedLog.position.x + relativePosition) % BOARD_WIDTH,
               y: frogStateRef.current.position.y,
             }
-            console.log('Frog moved with log', {
-              oldPosition: frogStateRef.current.position,
-              newPosition: newFrogPosition,
-              oldLogPosition: currentLog.position,
-              newLogPosition: updatedLog.position,
-              relativePosition,
-              logDirection: updatedLog.direction,
-            })
 
             dispatchFrog({
               type: 'SET_LOG_ID_AND_POSITION',
@@ -166,10 +150,6 @@ const Game = () => {
             })
           }
         } else {
-          console.log('Frog lost its log!', {
-            frogPosition: frogStateRef.current.position,
-            lostLogId: frogStateRef.current.onLogId,
-          })
           dispatchFrog({ type: 'SET_LOG_ID', logId: null })
         }
       }
@@ -181,13 +161,7 @@ const Game = () => {
   const checkCollisions = useCallback(() => {
     const {
       position: { x, y },
-      onLogId,
     } = frogStateRef.current
-    console.log('checkCollisions', {
-      frogPosition: { x, y },
-      frogOnLogId: onLogId,
-      obstaclesCount: obstaclesRef.current.length,
-    })
 
     // Check if frog reached the top
     if (y === 0) {
@@ -249,16 +223,6 @@ const Game = () => {
     checkCollisions()
   }, [obstacles, frogState.position])
 
-  // Add a new effect to log game state changes
-  // useEffect(() => {
-  //   console.log('Game state updated', {
-  //     frogState,
-  //     obstaclesCount: obstacles.length,
-  //     gameOver,
-  //     score,
-  //   })
-  // }, [frogState, obstacles, gameOver, score])
-
   const restartGame = useCallback(() => {
     dispatchFrog({ type: 'RESET' })
     setGameOver(false)
@@ -287,30 +251,22 @@ const Game = () => {
       newPosition.y = Math.min(BOARD_HEIGHT - 1, newPosition.y + 1)
     }
 
-    console.log('User input', {
-      oldPosition: position,
-      newPosition,
-      frogOnLogId: onLogId,
-    })
-
+    // Check if frog is on a log
     if (onLogId && (key.leftArrow || key.rightArrow)) {
       const updatedLog = obstacles.find((o) => o.id === onLogId)
       if (updatedLog) {
+        // Check if frog is moving off the log
         if (
           newPosition.x < updatedLog.position.x ||
           newPosition.x >= updatedLog.position.x + updatedLog.length
         ) {
-          console.log('Frog fell off the log!', {
-            newPosition,
-            updatedLogPosition: updatedLog.position,
-            logLength: updatedLog.length,
-          })
           setGameOver(true)
           return
         }
       }
     }
 
+    // Check if frog collided with a log
     const logCollision = obstacles.find(
       (obstacle) =>
         obstacle.type === 'log' &&
@@ -319,7 +275,6 @@ const Game = () => {
         obstacle.position.y === newPosition.y
     )
     if (logCollision) {
-      console.log('hit log in userInput logCollision', logCollision)
       dispatchFrog({
         type: 'SET_LOG_ID_AND_POSITION',
         logId: logCollision.id,
@@ -327,7 +282,6 @@ const Game = () => {
       })
       return
     } else if (newPosition.y > 0 && newPosition.y <= RIVER_HEIGHT) {
-      console.log('Frog fell into the river!')
       setGameOver(true)
       return
     }
@@ -372,7 +326,6 @@ const Game = () => {
 
   return (
     <Box flexDirection="column" borderStyle="single" paddingX={1}>
-      <Text>Frogger {frogState.onLogId}</Text>
       <Text>Score: {score}</Text>
       <Box flexDirection="column">{renderBoard()}</Box>
       <Text>Use arrow keys to move. Reach the top to score!</Text>
