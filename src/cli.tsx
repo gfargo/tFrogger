@@ -26,4 +26,3 @@ import Game from './Game.js'
 // );
 
 render(<Game />)
-

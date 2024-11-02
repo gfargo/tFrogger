@@ -15,12 +15,12 @@ import {
   TILES,
 } from './constants.js'
 
-interface Position {
+type Position = {
   x: number
   y: number
 }
 
-interface Obstacle {
+type Obstacle = {
   id: string
   position: Position
   direction: 'left' | 'right'
@@ -28,54 +28,61 @@ interface Obstacle {
   length: number
 }
 
-interface FrogState {
+type LogId = string | undefined
+
+type FrogState = {
   position: Position
-  onLogId: string | null
+  onLogId: LogId
 }
 
 type FrogAction =
   | { type: 'MOVE'; newPosition: Position }
-  | { type: 'SET_LOG_ID'; logId: string | null }
+  | { type: 'SET_LOG_ID'; logId: LogId }
   | {
       type: 'SET_LOG_ID_AND_POSITION'
-      logId: string | null
+      logId: LogId
       newPosition: Position
     }
   | { type: 'RESET' }
 
 const frogReducer = (state: FrogState, action: FrogAction): FrogState => {
   switch (action.type) {
-    case 'MOVE':
+    case 'MOVE': {
       return { ...state, position: action.newPosition }
-    case 'SET_LOG_ID':
+    }
+
+    case 'SET_LOG_ID': {
       return { ...state, onLogId: action.logId }
-    case 'SET_LOG_ID_AND_POSITION':
+    }
+
+    case 'SET_LOG_ID_AND_POSITION': {
       return { position: action.newPosition, onLogId: action.logId }
-    case 'RESET':
+    }
+
+    case 'RESET': {
       return {
         position: { x: BOARD_WIDTH / 2, y: BOARD_HEIGHT - 1 },
-        onLogId: null,
+        onLogId: undefined,
       }
-    default:
-      return state
+    }
   }
 }
 
-const Game = () => {
+function Game() {
   const [frogState, dispatchFrog] = useReducer(frogReducer, {
     position: { x: BOARD_WIDTH / 2, y: BOARD_HEIGHT - 1 },
-    onLogId: null,
+    onLogId: undefined,
   })
   const [obstacles, setObstacles] = useState<Obstacle[]>([])
   const [gameOver, setGameOver] = useState(false)
   const [score, setScore] = useState(0)
 
-  const frogStateRef = useRef(frogState)
-  const obstaclesRef = useRef(obstacles)
+  const frogStateReference = useRef(frogState)
+  const obstaclesReference = useRef(obstacles)
 
   useEffect(() => {
-    frogStateRef.current = frogState
-    obstaclesRef.current = obstacles
+    frogStateReference.current = frogState
+    obstaclesReference.current = obstacles
   }, [frogState, obstacles])
 
   const initializeObstacles = useCallback(() => {
@@ -91,6 +98,7 @@ const Game = () => {
         })
       }
     }
+
     for (let y = 1; y <= RIVER_HEIGHT; y++) {
       for (let i = 0; i < 2; i++) {
         const logLength = Math.floor(Math.random() * 3) + 1 // Random length between 1 and 3
@@ -103,12 +111,13 @@ const Game = () => {
         })
       }
     }
+
     setObstacles(newObstacles)
   }, [])
 
   const moveObstacles = useCallback(() => {
-    setObstacles((prevObstacles) => {
-      const newObstacles = prevObstacles.map((obstacle) => {
+    setObstacles((previousObstacles) => {
+      const newObstacles = previousObstacles.map((obstacle) => {
         const newX =
           obstacle.direction === 'left'
             ? (obstacle.position.x - 1 + BOARD_WIDTH) % BOARD_WIDTH
@@ -123,24 +132,24 @@ const Game = () => {
         }
       })
 
-      if (frogStateRef.current.onLogId) {
+      if (frogStateReference.current.onLogId) {
         const updatedLog = newObstacles.find(
-          (o) => o.id === frogStateRef.current.onLogId
+          (o) => o.id === frogStateReference.current.onLogId
         )
         if (updatedLog) {
-          const currentLog = prevObstacles.find(
-            (o) => o.id === frogStateRef.current.onLogId
+          const currentLog = previousObstacles.find(
+            (o) => o.id === frogStateReference.current.onLogId
           )
           if (currentLog) {
             const relativePosition =
-              frogStateRef.current.position.x - currentLog.position.x
+              frogStateReference.current.position.x - currentLog.position.x
             const newFrogPosition = {
               x:
                 updatedLog.direction === 'left'
                   ? (updatedLog.position.x + relativePosition + BOARD_WIDTH) %
                     BOARD_WIDTH
                   : (updatedLog.position.x + relativePosition) % BOARD_WIDTH,
-              y: frogStateRef.current.position.y,
+              y: frogStateReference.current.position.y,
             }
 
             dispatchFrog({
@@ -150,7 +159,7 @@ const Game = () => {
             })
           }
         } else {
-          dispatchFrog({ type: 'SET_LOG_ID', logId: null })
+          dispatchFrog({ type: 'SET_LOG_ID', logId: undefined })
         }
       }
 
@@ -161,18 +170,18 @@ const Game = () => {
   const checkCollisions = useCallback(() => {
     const {
       position: { x, y },
-    } = frogStateRef.current
+    } = frogStateReference.current
 
     // Check if frog reached the top
     if (y === 0) {
-      setScore((prevScore) => prevScore + 1)
+      setScore((previousScore) => previousScore + 1)
       dispatchFrog({ type: 'RESET' })
       return
     }
 
     // Check if frog is in the river
     if (y > 0 && y <= RIVER_HEIGHT) {
-      const logCollision = obstaclesRef.current.find(
+      const logCollision = obstaclesReference.current.find(
         (obstacle) =>
           obstacle.type === 'log' &&
           x >= obstacle.position.x &&
@@ -184,15 +193,16 @@ const Game = () => {
         dispatchFrog({ type: 'SET_LOG_ID', logId: logCollision.id })
       } else {
         setGameOver(true)
-        dispatchFrog({ type: 'SET_LOG_ID', logId: null })
+        dispatchFrog({ type: 'SET_LOG_ID', logId: undefined })
       }
+
       return
-    } else {
-      dispatchFrog({ type: 'SET_LOG_ID', logId: null })
     }
 
+    dispatchFrog({ type: 'SET_LOG_ID', logId: undefined })
+
     // Check for car collisions
-    const carCollision = obstaclesRef.current.some(
+    const carCollision = obstaclesReference.current.some(
       (obstacle) =>
         obstacle.type === 'car' &&
         x >= obstacle.position.x &&
@@ -202,7 +212,7 @@ const Game = () => {
 
     if (carCollision) {
       setGameOver(true)
-      dispatchFrog({ type: 'SET_LOG_ID', logId: null })
+      dispatchFrog({ type: 'SET_LOG_ID', logId: undefined })
     }
   }, [])
 
@@ -211,16 +221,21 @@ const Game = () => {
       moveObstacles()
       checkCollisions()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameOver])
 
   useEffect(() => {
     initializeObstacles()
     const timer = setInterval(gameLoop, GAME_SPEED)
-    return () => clearInterval(timer)
+    return () => {
+      clearInterval(timer)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameLoop])
 
   useEffect(() => {
     checkCollisions()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [obstacles, frogState.position])
 
   const restartGame = useCallback(() => {
@@ -235,11 +250,12 @@ const Game = () => {
       if (input.toLowerCase() === 'r') {
         restartGame()
       }
+
       return
     }
 
-    const { position, onLogId } = frogStateRef.current
-    let newPosition = { ...position }
+    const { position, onLogId } = frogStateReference.current
+    const newPosition = { ...position }
 
     if (key.leftArrow) {
       newPosition.x = Math.max(0, newPosition.x - 1)
@@ -254,15 +270,13 @@ const Game = () => {
     // Check if frog is on a log
     if (onLogId && (key.leftArrow || key.rightArrow)) {
       const updatedLog = obstacles.find((o) => o.id === onLogId)
-      if (updatedLog) {
-        // Check if frog is moving off the log
-        if (
-          newPosition.x < updatedLog.position.x ||
-          newPosition.x >= updatedLog.position.x + updatedLog.length
-        ) {
-          setGameOver(true)
-          return
-        }
+      if (
+        updatedLog && // Check if frog is moving off the log
+        (newPosition.x < updatedLog.position.x ||
+          newPosition.x >= updatedLog.position.x + updatedLog.length)
+      ) {
+        setGameOver(true)
+        return
       }
     }
 
@@ -281,7 +295,9 @@ const Game = () => {
         newPosition,
       })
       return
-    } else if (newPosition.y > 0 && newPosition.y <= RIVER_HEIGHT) {
+    }
+
+    if (newPosition.y > 0 && newPosition.y <= RIVER_HEIGHT) {
       setGameOver(true)
       return
     }
@@ -319,8 +335,10 @@ const Game = () => {
           }
         }
       }
+
       board.push(<Text key={y}>{row}</Text>)
     }
+
     return board
   }
 
@@ -329,7 +347,9 @@ const Game = () => {
       <Text>Score: {score}</Text>
       <Box flexDirection="column">{renderBoard()}</Box>
       <Text>Use arrow keys to move. Reach the top to score!</Text>
-      {gameOver && <Text color="red">Game Over! Press 'r' to restart.</Text>}
+      {gameOver && (
+        <Text color="red">Game Over! Press &lsquo;r&rsqo; to restart.</Text>
+      )}
     </Box>
   )
 }
