@@ -2,11 +2,15 @@ import { Box, Text, useInput } from 'ink'
 import React from 'react'
 import { BOARD_HEIGHT, BOARD_WIDTH } from '../constants.js'
 
-const GameOver: React.FC<{
-  score: number
-  onRestart: () => void
-  onExit: () => void
-}> = ({ score, onRestart, onExit }) => {
+function GameOver({
+  score,
+  onRestart,
+  onExit,
+}: {
+  readonly score: number
+  readonly onRestart: () => void
+  readonly onExit: () => void
+}) {
   useInput((input, key) => {
     if (input.toLowerCase() === 'r') {
       onRestart()
@@ -32,7 +36,7 @@ const GameOver: React.FC<{
         <Text italic>Final Score: {score}</Text>
       </Box>
       <Box marginTop={2} flexDirection="column" alignItems="center">
-        <Text dimColor>Press 'R' to restart or 'Q' to quit</Text>
+        <Text dimColor>Press &39;R&39; to restart or &39;Q&39; to quit</Text>
       </Box>
     </Box>
   )

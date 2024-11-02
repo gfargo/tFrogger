@@ -1,17 +1,25 @@
-import { Box, Text, useInput } from 'ink';
-import React, { useState } from 'react';
-import { BOARD_HEIGHT, BOARD_WIDTH } from '../constants.js';
-const MainMenu: React.FC<{ onStart: () => void; onExit: () => void }> = ({
+import { Box, Text, useInput } from 'ink'
+import React, { useState } from 'react'
+import { BOARD_HEIGHT, BOARD_WIDTH } from '../constants.js'
+
+function MainMenu({
   onStart,
   onExit,
-}) => {
+}: {
+  readonly onStart: () => void
+  readonly onExit: () => void
+}) {
   const [selectedOption, setSelectedOption] = useState(0)
 
   useInput((_, key) => {
     if (key.upArrow || key.downArrow) {
-      setSelectedOption((prev) => (prev === 0 ? 1 : 0))
+      setSelectedOption((previous) => (previous === 0 ? 1 : 0))
     } else if (key.return) {
-      selectedOption === 0 ? onStart() : onExit()
+      if (selectedOption === 0) {
+        onStart()
+      } else {
+        onExit()
+      }
     }
   })
 
@@ -24,11 +32,11 @@ const MainMenu: React.FC<{ onStart: () => void; onExit: () => void }> = ({
       justifyContent="center"
     >
       <Box flexDirection="column" alignSelf="center" alignItems="center">
-        <Text bold color={'green'}>
+        <Text bold color="green">
           tFrogger 🐸
         </Text>
 
-        <Box flexDirection="column" marginTop={1} alignItems='flex-start' >
+        <Box flexDirection="column" marginTop={1} alignItems="flex-start">
           <Text color={selectedOption === 0 ? 'green' : 'white'}>
             {selectedOption === 0 ? ' 🛣️  ' : '   '}
             Start Game

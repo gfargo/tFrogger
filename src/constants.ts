@@ -13,5 +13,4 @@ export const TILES = {
   GOAL: '🏁',
 }
 
-export const GAME_SPEED = 200 // milliseconds
-
+export const GAME_SPEED = 200 // Milliseconds

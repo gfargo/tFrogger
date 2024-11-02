@@ -4,7 +4,7 @@ import {
   RIVER_HEIGHT,
   ROAD_HEIGHT,
 } from '../constants.js'
-import { Obstacle, Position } from '../types.js'
+import { type Obstacle } from '../types.js'
 
 export const initializeObstacles = (): Obstacle[] => {
   const newObstacles: Obstacle[] = []
@@ -48,7 +48,7 @@ export const moveObstacles = (obstacles: Obstacle[]): Obstacle[] => {
       position: {
         x: newX,
         y: obstacle.position.y,
-      } as Position,
+      },
     }
   })
 }

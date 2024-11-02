@@ -7,7 +7,7 @@ import {
   ROAD_HEIGHT,
   TILES,
 } from '../constants.js'
-import { Obstacle, Position } from '../types.js'
+import { type Obstacle, type Position } from '../types.js'
 
 export const renderBoard = (
   frogPosition: Position,

@@ -25,21 +25,28 @@ import {
   moveObstacles,
 } from './helpers/obstacleHelpers.js'
 import { renderBoard } from './helpers/renderHelpers.js'
-import { FrogAction, FrogState, Obstacle } from './types.js'
+import { type FrogAction, type FrogState, type Obstacle } from './types.js'
 
 const frogReducer = (state: FrogState, action: FrogAction): FrogState => {
   switch (action.type) {
-    case 'MOVE':
+    case 'MOVE': {
       return { ...state, position: action.newPosition }
-    case 'SET_LOG_ID':
+    }
+
+    case 'SET_LOG_ID': {
       return { ...state, onLogId: action.logId }
-    case 'SET_LOG_ID_AND_POSITION':
+    }
+
+    case 'SET_LOG_ID_AND_POSITION': {
       return { position: action.newPosition, onLogId: action.logId }
-    case 'RESET':
+    }
+
+    case 'RESET': {
       return {
         position: { x: BOARD_WIDTH / 2, y: BOARD_HEIGHT - 1 },
         onLogId: undefined,
       }
+    }
   }
 }
 
@@ -84,6 +91,7 @@ function Game() {
         setGameState('gameOver')
         dispatchFrog({ type: 'SET_LOG_ID', logId: undefined })
       }
+
       return
     }
 
@@ -105,7 +113,9 @@ function Game() {
   useEffect(() => {
     setObstacles(initializeObstacles())
     const timer = setInterval(gameLoop, GAME_SPEED)
-    return () => clearInterval(timer)
+    return () => {
+      clearInterval(timer)
+    }
   }, [gameLoop, initializeObstacles])
 
   useEffect(() => {
@@ -135,11 +145,13 @@ function Game() {
       newPosition.y = Math.min(BOARD_HEIGHT - 1, newPosition.y + 1)
     }
 
-    if (onLogId && (key.leftArrow || key.rightArrow)) {
-      if (!isFrogOnLog(newPosition, onLogId, obstacles)) {
-        setGameState('gameOver')
-        return
-      }
+    if (
+      onLogId &&
+      (key.leftArrow || key.rightArrow) &&
+      !isFrogOnLog(newPosition, onLogId, obstacles)
+    ) {
+      setGameState('gameOver')
+      return
     }
 
     // Check if frog collided with a log
@@ -170,7 +182,9 @@ function Game() {
   if (gameState === 'menu') {
     return (
       <MainMenu
-        onStart={() => setGameState('playing')}
+        onStart={() => {
+          setGameState('playing')
+        }}
         onExit={() => process.exit()}
       />
     )
