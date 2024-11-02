@@ -1,5 +1,5 @@
 import { Box, Text, useInput } from 'ink'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import {
   BOARD_HEIGHT,
   BOARD_WIDTH,
@@ -31,6 +31,16 @@ const Game: React.FC = () => {
   const [score, setScore] = useState(0)
   const [frogOnLog, setFrogOnLog] = useState<Obstacle | null>(null)
 
+  const frogPositionRef = useRef(frogPosition)
+  const frogOnLogRef = useRef(frogOnLog)
+  const obstaclesRef = useRef(obstacles)
+
+  useEffect(() => {
+    frogPositionRef.current = frogPosition
+    frogOnLogRef.current = frogOnLog
+    obstaclesRef.current = obstacles
+  }, [frogPosition, frogOnLog, obstacles])
+
   const initializeObstacles = useCallback(() => {
     const newObstacles: Obstacle[] = []
     for (let y = BOARD_HEIGHT - ROAD_HEIGHT - 1; y < BOARD_HEIGHT - 1; y++) {
@@ -57,11 +67,15 @@ const Game: React.FC = () => {
     setObstacles(newObstacles)
   }, [])
 
-  const moveObstacles = () => {
-    console.log('moveObstacles', { frogOnLog })
+  const moveObstacles = useCallback(() => {
+    console.log('moveObstacles', {
+      frogPosition: frogPositionRef.current,
+      frogOnLog: frogOnLogRef.current,
+      obstaclesCount: obstaclesRef.current.length,
+    })
 
-    setObstacles((prevObstacles) =>
-      prevObstacles.map((obstacle) => {
+    setObstacles((prevObstacles) => {
+      const newObstacles = prevObstacles.map((obstacle) => {
         const newX =
           obstacle.direction === 'left'
             ? (obstacle.position.x - 1 + BOARD_WIDTH) % BOARD_WIDTH
@@ -75,23 +89,87 @@ const Game: React.FC = () => {
           },
         }
       })
-    )
 
-    if (frogOnLog) {
-      console.log('frogOnLog', frogOnLog)
+      if (frogOnLogRef.current) {
+        const updatedLog = newObstacles.find(
+          (o) =>
+            o.type === 'log' &&
+            o.position.y === frogOnLogRef.current!.position.y
+        )
+        if (updatedLog) {
+          const relativePosition =
+            frogPositionRef.current.x - frogOnLogRef.current.position.x
 
-      setFrogPosition((prev) => ({
-        x:
-          frogOnLog.direction === 'left'
-            ? (prev.x - 1 + BOARD_WIDTH) % BOARD_WIDTH
-            : (prev.x + 1) % BOARD_WIDTH,
-        y: prev.y,
-      }))
-    }
-  }
+          const newFrogPosition = {
+            x:
+              updatedLog.direction === 'left'
+                ? (updatedLog.position.x + relativePosition - 1 + BOARD_WIDTH) %
+                  BOARD_WIDTH
+                : (updatedLog.position.x + relativePosition + 1) % BOARD_WIDTH,
+            y: frogPositionRef.current.y,
+          }
+          console.log('Frog moved with log', {
+            oldPosition: frogPositionRef.current,
+            newPosition: newFrogPosition,
+            oldLogPosition: frogOnLogRef.current.position,
+            newLogPosition: updatedLog.position,
+            relativePosition,
+            logDirection: updatedLog.direction,
+          })
+          setFrogPosition(newFrogPosition)
+          setFrogOnLog(updatedLog)
+        } else {
+          console.log('Frog lost its log!', {
+            frogPosition: frogPositionRef.current,
+            lostLog: frogOnLogRef.current,
+          })
+          setFrogOnLog(null)
+        }
+      }
 
-  const checkCollisions = () => {
-    const { x, y } = frogPosition
+      return newObstacles
+    })
+
+    // if (frogOnLogRef.current) {
+    //   const updatedLog = obstaclesRef.current.find(
+    //     (o) =>
+    //       o.type === 'log' && o.position.y === frogOnLogRef.current!.position.y
+    //   )
+    //   if (updatedLog) {
+    //     const newFrogPosition = {
+    //       x:
+    //         (updatedLog.position.x +
+    //           (frogPositionRef.current.x - frogOnLogRef.current.position.x) +
+    //           BOARD_WIDTH) %
+    //         BOARD_WIDTH,
+    //       y: frogPositionRef.current.y,
+    //     }
+    //     console.log('Frog moved with log', {
+    //       oldPosition: frogPositionRef.current,
+    //       newPosition: newFrogPosition,
+    //       oldLogPosition: frogOnLogRef.current.position,
+    //       newLogPosition: updatedLog.position,
+    //     })
+    //     setFrogPosition(newFrogPosition)
+    //     setFrogOnLog(updatedLog)
+    //   } else {
+    //     console.log('Frog lost its log!', {
+    //       frogPosition: frogPositionRef.current,
+
+    //       lostLog: frogOnLogRef.current,
+    //     })
+    //     setFrogOnLog(null)
+    //   }
+    // }
+  }, [])
+
+  const checkCollisions = useCallback(() => {
+    const { x, y } = frogPositionRef.current
+    console.log('checkCollisions', {
+      frogPosition: { x, y },
+      frogOnLog: frogOnLogRef.current,
+      obstaclesCount: obstaclesRef.current.length,
+    })
 
     // Check if frog reached the top
     if (y === 0) {
@@ -103,7 +181,7 @@ const Game: React.FC = () => {
 
     // Check if frog is in the river
     if (y > 0 && y <= RIVER_HEIGHT) {
-      const logCollision = obstacles.find(
+      const logCollision = obstaclesRef.current.find(
         (obstacle) =>
           obstacle.type === 'log' &&
           x >= obstacle.position.x &&
@@ -112,45 +190,57 @@ const Game: React.FC = () => {
       )
       if (logCollision) {
         setFrogOnLog(logCollision)
-        return
       } else {
         setGameOver(true)
         setFrogOnLog(null)
-        return
       }
+      return
     } else {
       setFrogOnLog(null)
     }
 
     // Check for car collisions
-    const carCollision = obstacles.some(
+    const carCollision = obstaclesRef.current.some(
       (obstacle) =>
         obstacle.type === 'car' &&
-        obstacle.position.x === x &&
+        x >= obstacle.position.x &&
+        x < obstacle.position.x + obstacle.length &&
         obstacle.position.y === y
     )
+
     if (carCollision) {
       setGameOver(true)
       setFrogOnLog(null)
     }
-  }
+  }, [])
 
-  const gameLoop = () => {
+  const gameLoop = useCallback(() => {
     if (!gameOver) {
       moveObstacles()
       checkCollisions()
     }
-  }
+  }, [gameOver, moveObstacles, checkCollisions])
 
   useEffect(() => {
     initializeObstacles()
     const timer = setInterval(gameLoop, GAME_SPEED)
     return () => clearInterval(timer)
-  }, [])
+  }, [gameLoop])
 
   useEffect(() => {
     checkCollisions()
-  }, [obstacles, frogPosition, checkCollisions])
+  }, [obstacles, frogPosition])
+
+  // Add a new effect to log game state changes
+  useEffect(() => {
+    console.log('Game state updated', {
+      frogPosition,
+      frogOnLog,
+      obstaclesCount: obstacles.length,
+      gameOver,
+      score,
+    })
+  }, [frogPosition, frogOnLog, obstacles, gameOver, score])
 
   const restartGame = useCallback(() => {
     setFrogPosition({ x: BOARD_WIDTH / 2, y: BOARD_HEIGHT - 1 })
@@ -158,7 +248,7 @@ const Game: React.FC = () => {
     setScore(0)
     setFrogOnLog(null)
     initializeObstacles()
-  }, [initializeObstacles])
+  }, [])
 
   useInput((input, key) => {
     if (gameOver) {
@@ -180,7 +270,31 @@ const Game: React.FC = () => {
       newPosition.y = Math.min(BOARD_HEIGHT - 1, newPosition.y + 1)
     }
 
-    console.log('newPosition', newPosition)
+    console.log('User input', {
+      oldPosition: frogPosition,
+      newPosition,
+      frogOnLog,
+    })
+
+    if (frogOnLog && (key.leftArrow || key.rightArrow)) {
+      const updatedLogPosition = obstacles.find(
+        (o) => o.type === 'log' && o.position.y === frogOnLog.position.y
+      )?.position
+      if (updatedLogPosition) {
+        if (
+          newPosition.x < updatedLogPosition.x ||
+          newPosition.x >= updatedLogPosition.x + frogOnLog.length
+        ) {
+          console.log('Frog fell off the log!', {
+            newPosition,
+            updatedLogPosition,
+            logLength: frogOnLog.length,
+          })
+          setGameOver(true)
+          return
+        }
+      }
+    }
 
     setFrogPosition(newPosition)
 
@@ -192,8 +306,10 @@ const Game: React.FC = () => {
         obstacle.position.y === newPosition.y
     )
     if (logCollision) {
-      console.log('hit log in userInpput logCollision', logCollision)
+      console.log('hit log in userInput logCollision', logCollision)
       setFrogOnLog(logCollision)
+    } else if (newPosition.y > 0 && newPosition.y <= RIVER_HEIGHT) {
+      setGameOver(true)
     }
   })
 
