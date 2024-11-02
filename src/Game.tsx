@@ -1,5 +1,5 @@
-import { Box, Text, useInput } from 'ink'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useState, useEffect, useCallback } from 'react';
+import { Box, Text, useInput } from 'ink';
 import {
   BOARD_HEIGHT,
   BOARD_WIDTH,
@@ -10,14 +10,14 @@ import {
 } from './constants.js'
 
 interface Position {
-  x: number
-  y: number
+  x: number;
+  y: number;
 }
 
 interface Obstacle {
-  position: Position
-  direction: 'left' | 'right'
-  type: 'car' | 'log'
+  position: Position;
+  direction: 'left' | 'right';
+  type: 'car' | 'log';
 }
 
 const Game: React.FC = () => {
@@ -67,9 +67,9 @@ const Game: React.FC = () => {
     )
   }, [])
 
-  const checkCollisions = useCallback((newPosition: { x: any; y: any }) => {
-    const { x, y } = newPosition
-
+  const checkCollisions = useCallback(() => {
+    const { x, y } = frogPosition
+    
     // Check if frog reached the top
     if (y === 0) {
       setScore((prevScore) => prevScore + 1)
@@ -104,18 +104,22 @@ const Game: React.FC = () => {
     }
   }, [frogPosition, obstacles])
 
-  const gameLoop = () => {
+  const gameLoop = useCallback(() => {
     if (!gameOver) {
       moveObstacles()
-      checkCollisions(frogPosition)
+      checkCollisions()
     }
-  }
+  }, [gameOver, moveObstacles, checkCollisions])
   
   useEffect(() => {
     initializeObstacles()
     const timer = setInterval(gameLoop, GAME_SPEED)
     return () => clearInterval(timer)
   }, [])
+
+  useEffect(() => {
+    checkCollisions()
+  }, [obstacles, checkCollisions])
 
   const restartGame = useCallback(() => {
     setFrogPosition({ x: BOARD_WIDTH / 2, y: BOARD_HEIGHT - 1 })
@@ -145,7 +149,6 @@ const Game: React.FC = () => {
     }
 
     setFrogPosition(newPosition)
-    checkCollisions(newPosition)
   })
 
   const renderBoard = () => {
@@ -192,3 +195,4 @@ const Game: React.FC = () => {
 }
 
 export default Game
+
