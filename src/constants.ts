@@ -5,7 +5,7 @@ export const RIVER_HEIGHT = 4;
 
 export const TILES = {
   FROG: '🐸',
-  CAR: '🚗',
+  CAR: '🚚',
   LOG: '🟫',
   RIVER: '🟦',
   ROAD: '⬜️',

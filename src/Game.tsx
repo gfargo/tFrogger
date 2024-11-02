@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Box, Text, useInput } from 'ink';
+import { Box, Text, useInput } from 'ink'
+import React, { useCallback, useEffect, useState } from 'react'
 import {
   BOARD_HEIGHT,
   BOARD_WIDTH,
@@ -10,14 +10,15 @@ import {
 } from './constants.js'
 
 interface Position {
-  x: number;
-  y: number;
+  x: number
+  y: number
 }
 
 interface Obstacle {
-  position: Position;
-  direction: 'left' | 'right';
-  type: 'car' | 'log';
+  position: Position
+  direction: 'left' | 'right'
+  type: 'car' | 'log'
+  length: number
 }
 
 const Game: React.FC = () => {
@@ -28,6 +29,7 @@ const Game: React.FC = () => {
   const [obstacles, setObstacles] = useState<Obstacle[]>([])
   const [gameOver, setGameOver] = useState(false)
   const [score, setScore] = useState(0)
+  const [frogOnLog, setFrogOnLog] = useState<Obstacle | null>(null)
 
   const initializeObstacles = useCallback(() => {
     const newObstacles: Obstacle[] = []
@@ -37,59 +39,87 @@ const Game: React.FC = () => {
           position: { x: Math.floor(Math.random() * BOARD_WIDTH), y },
           direction: y % 2 === 0 ? 'left' : 'right',
           type: 'car',
+          length: 1,
         })
       }
     }
     for (let y = 1; y <= RIVER_HEIGHT; y++) {
       for (let i = 0; i < 2; i++) {
+        const logLength = Math.floor(Math.random() * 3) + 1 // Random length between 1 and 3
         newObstacles.push({
           position: { x: Math.floor(Math.random() * BOARD_WIDTH), y },
           direction: y % 2 === 0 ? 'left' : 'right',
           type: 'log',
+          length: logLength,
         })
       }
     }
     setObstacles(newObstacles)
   }, [])
 
-  const moveObstacles = useCallback(() => {
-    setObstacles((prevObstacles) =>
-      prevObstacles.map((obstacle) => ({
-        ...obstacle,
-        position: {
-          x:
-            obstacle.direction === 'left'
-              ? (obstacle.position.x - 1 + BOARD_WIDTH) % BOARD_WIDTH
-              : (obstacle.position.x + 1) % BOARD_WIDTH,
-          y: obstacle.position.y,
-        },
-      }))
-    )
-  }, [])
+  const moveObstacles = () => {
+    console.log('moveObstacles', { frogOnLog })
 
-  const checkCollisions = useCallback(() => {
+    setObstacles((prevObstacles) =>
+      prevObstacles.map((obstacle) => {
+        const newX =
+          obstacle.direction === 'left'
+            ? (obstacle.position.x - 1 + BOARD_WIDTH) % BOARD_WIDTH
+            : (obstacle.position.x + 1) % BOARD_WIDTH
+
+        return {
+          ...obstacle,
+          position: {
+            x: newX,
+            y: obstacle.position.y,
+          },
+        }
+      })
+    )
+
+    if (frogOnLog) {
+      console.log('frogOnLog', frogOnLog)
+
+      setFrogPosition((prev) => ({
+        x:
+          frogOnLog.direction === 'left'
+            ? (prev.x - 1 + BOARD_WIDTH) % BOARD_WIDTH
+            : (prev.x + 1) % BOARD_WIDTH,
+        y: prev.y,
+      }))
+    }
+  }
+
+  const checkCollisions = () => {
     const { x, y } = frogPosition
-    
+
     // Check if frog reached the top
     if (y === 0) {
       setScore((prevScore) => prevScore + 1)
       setFrogPosition({ x: BOARD_WIDTH / 2, y: BOARD_HEIGHT - 1 })
+      setFrogOnLog(null)
       return
     }
 
     // Check if frog is in the river
     if (y > 0 && y <= RIVER_HEIGHT) {
-      const logCollision = obstacles.some(
+      const logCollision = obstacles.find(
         (obstacle) =>
           obstacle.type === 'log' &&
-          obstacle.position.x === x &&
+          x >= obstacle.position.x &&
+          x < obstacle.position.x + obstacle.length &&
           obstacle.position.y === y
       )
-      
-      if (!logCollision) {
+      if (logCollision) {
+        setFrogOnLog(logCollision)
+        return
+      } else {
         setGameOver(true)
+        setFrogOnLog(null)
         return
       }
+    } else {
+      setFrogOnLog(null)
     }
 
     // Check for car collisions
@@ -101,16 +131,17 @@ const Game: React.FC = () => {
     )
     if (carCollision) {
       setGameOver(true)
+      setFrogOnLog(null)
     }
-  }, [frogPosition, obstacles])
+  }
 
-  const gameLoop = useCallback(() => {
+  const gameLoop = () => {
     if (!gameOver) {
       moveObstacles()
       checkCollisions()
     }
-  }, [gameOver, moveObstacles, checkCollisions])
-  
+  }
+
   useEffect(() => {
     initializeObstacles()
     const timer = setInterval(gameLoop, GAME_SPEED)
@@ -119,12 +150,13 @@ const Game: React.FC = () => {
 
   useEffect(() => {
     checkCollisions()
-  }, [obstacles, checkCollisions])
+  }, [obstacles, frogPosition, checkCollisions])
 
   const restartGame = useCallback(() => {
     setFrogPosition({ x: BOARD_WIDTH / 2, y: BOARD_HEIGHT - 1 })
     setGameOver(false)
     setScore(0)
+    setFrogOnLog(null)
     initializeObstacles()
   }, [initializeObstacles])
 
@@ -148,7 +180,21 @@ const Game: React.FC = () => {
       newPosition.y = Math.min(BOARD_HEIGHT - 1, newPosition.y + 1)
     }
 
+    console.log('newPosition', newPosition)
+
     setFrogPosition(newPosition)
+
+    const logCollision = obstacles.find(
+      (obstacle) =>
+        obstacle.type === 'log' &&
+        newPosition.x >= obstacle.position.x &&
+        newPosition.x < obstacle.position.x + obstacle.length &&
+        obstacle.position.y === newPosition.y
+    )
+    if (logCollision) {
+      console.log('hit log in userInpput logCollision', logCollision)
+      setFrogOnLog(logCollision)
+    }
   })
 
   const renderBoard = () => {
@@ -160,7 +206,10 @@ const Game: React.FC = () => {
           row += TILES.FROG
         } else {
           const obstacle = obstacles.find(
-            (o) => o.position.x === x && o.position.y === y
+            (o) =>
+              o.position.x <= x &&
+              x < o.position.x + o.length &&
+              o.position.y === y
           )
           if (obstacle) {
             row += obstacle.type === 'car' ? TILES.CAR : TILES.LOG
@@ -185,7 +234,7 @@ const Game: React.FC = () => {
 
   return (
     <Box flexDirection="column" borderStyle="single" paddingX={1}>
-      <Text>Frogger Clone</Text>
+      <Text>Frogger {frogOnLog?.type}</Text>
       <Text>Score: {score}</Text>
       <Box flexDirection="column">{renderBoard()}</Box>
       <Text>Use arrow keys to move. Reach the top to score!</Text>
@@ -195,4 +244,3 @@ const Game: React.FC = () => {
 }
 
 export default Game
-
