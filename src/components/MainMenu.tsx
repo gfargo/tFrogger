@@ -1,21 +1,11 @@
-import { Box, Text, useInput } from 'ink'
-import React, { useEffect, useState } from 'react'
-import { BOARD_HEIGHT, BOARD_WIDTH, GAME_SPEED } from '../constants.js'
-import { initializeObstacles, moveObstacles } from '../helpers/obstacleHelpers.js'
-import { renderBoard } from '../helpers/renderHelpers.js'
-
-const MainMenu: React.FC<{ onStart: () => void; onExit: () => void }> = ({ onStart, onExit }) => {
+import { Box, Text, useInput } from 'ink';
+import React, { useState } from 'react';
+import { BOARD_HEIGHT, BOARD_WIDTH } from '../constants.js';
+const MainMenu: React.FC<{ onStart: () => void; onExit: () => void }> = ({
+  onStart,
+  onExit,
+}) => {
   const [selectedOption, setSelectedOption] = useState(0)
-  const [obstacles, setObstacles] = useState(initializeObstacles())
-  const [frogPosition] = useState({ x: Math.floor(BOARD_WIDTH / 2), y: BOARD_HEIGHT - 1 })
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setObstacles(moveObstacles)
-    }, GAME_SPEED)
-
-    return () => clearInterval(timer)
-  }, [])
 
   useInput((_, key) => {
     if (key.upArrow || key.downArrow) {
@@ -26,12 +16,28 @@ const MainMenu: React.FC<{ onStart: () => void; onExit: () => void }> = ({ onSta
   })
 
   return (
-    <Box flexDirection="column">
-      {renderBoard(frogPosition, obstacles, 0)}
-      <Box flexDirection="column" alignItems="center" marginTop={1}>
-        <Text bold>tFrogger</Text>
-        <Text color={selectedOption === 0 ? 'green' : 'white'}>Start Game</Text>
-        <Text color={selectedOption === 1 ? 'green' : 'white'}>Exit</Text>
+    <Box
+      flexDirection="column"
+      alignItems="center"
+      height={BOARD_HEIGHT}
+      width={BOARD_WIDTH}
+      justifyContent="center"
+    >
+      <Box flexDirection="column" alignSelf="center" alignItems="center">
+        <Text bold color={'green'}>
+          tFrogger 🐸
+        </Text>
+
+        <Box flexDirection="column" marginTop={1} alignItems='flex-start' >
+          <Text color={selectedOption === 0 ? 'green' : 'white'}>
+            {selectedOption === 0 ? ' 🛣️  ' : '   '}
+            Start Game
+          </Text>
+          <Text color={selectedOption === 1 ? 'red' : 'white'}>
+            {selectedOption === 1 ? '💣 ' : '    '}
+            Exit
+          </Text>
+        </Box>
       </Box>
     </Box>
   )
