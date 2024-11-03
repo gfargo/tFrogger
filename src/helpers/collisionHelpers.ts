@@ -36,11 +36,16 @@ export const isFrogOnLog = (
   logId: string | undefined,
   obstacles: Obstacle[]
 ): boolean => {
-  if (!logId) return false
+  if (!logId) {
+    return false
+  }
+
   const log = obstacles.find((o) => o.id === logId)
+  if (!log) {
+    return false
+  }
+
   return (
-    Boolean(log) &&
-    position.x >= log.position.x &&
-    position.x < log.position.x + log.length
+    position.x >= log.position.x && position.x < log.position.x + log.length
   )
 }

@@ -36,7 +36,9 @@ function GameOver({
         <Text italic>Final Score: {score}</Text>
       </Box>
       <Box marginTop={2} flexDirection="column" alignItems="center">
-        <Text dimColor>Press &39;R&39; to restart or &39;Q&39; to quit</Text>
+        <Text dimColor>
+          Press &apos;R&apos; to restart or &apos;Q&apos; to quit
+        </Text>
       </Box>
     </Box>
   )

@@ -35,20 +35,3 @@ export const initializeObstacles = (): Obstacle[] => {
 
   return newObstacles
 }
-
-export const moveObstacles = (obstacles: Obstacle[]): Obstacle[] => {
-  return obstacles.map((obstacle) => {
-    const newX =
-      obstacle.direction === 'left'
-        ? (obstacle.position.x - 1 + BOARD_WIDTH) % BOARD_WIDTH
-        : (obstacle.position.x + 1) % BOARD_WIDTH
-
-    return {
-      ...obstacle,
-      position: {
-        x: newX,
-        y: obstacle.position.y,
-      },
-    }
-  })
-}

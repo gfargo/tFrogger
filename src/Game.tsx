@@ -20,10 +20,7 @@ import {
   isFrogOnLog,
   isInRiver,
 } from './helpers/collisionHelpers.js'
-import {
-  initializeObstacles,
-  moveObstacles,
-} from './helpers/obstacleHelpers.js'
+import { initializeObstacles } from './helpers/obstacleHelpers.js'
 import { renderBoard } from './helpers/renderHelpers.js'
 import { type FrogAction, type FrogState, type Obstacle } from './types.js'
 
@@ -103,9 +100,61 @@ function Game() {
     }
   }, [])
 
+  const moveObstacles = useCallback(() => {
+    setObstacles((previousObstacles) => {
+      const newObstacles = previousObstacles.map((obstacle) => {
+        const newX =
+          obstacle.direction === 'left'
+            ? (obstacle.position.x - 1 + BOARD_WIDTH) % BOARD_WIDTH
+            : (obstacle.position.x + 1) % BOARD_WIDTH
+
+        return {
+          ...obstacle,
+          position: {
+            x: newX,
+            y: obstacle.position.y,
+          },
+        }
+      })
+
+      if (frogStateReference.current.onLogId) {
+        const updatedLog = newObstacles.find(
+          (o) => o.id === frogStateReference.current.onLogId
+        )
+        if (updatedLog) {
+          const currentLog = previousObstacles.find(
+            (o) => o.id === frogStateReference.current.onLogId
+          )
+          if (currentLog) {
+            const relativePosition =
+              frogStateReference.current.position.x - currentLog.position.x
+            const newFrogPosition = {
+              x:
+                updatedLog.direction === 'left'
+                  ? (updatedLog.position.x + relativePosition + BOARD_WIDTH) %
+                    BOARD_WIDTH
+                  : (updatedLog.position.x + relativePosition) % BOARD_WIDTH,
+              y: frogStateReference.current.position.y,
+            }
+
+            dispatchFrog({
+              type: 'SET_LOG_ID_AND_POSITION',
+              logId: updatedLog.id,
+              newPosition: newFrogPosition,
+            })
+          }
+        } else {
+          dispatchFrog({ type: 'SET_LOG_ID', logId: undefined })
+        }
+      }
+
+      return newObstacles
+    })
+  }, [])
+
   const gameLoop = useCallback(() => {
     if (gameState === 'playing') {
-      setObstacles(moveObstacles)
+      moveObstacles()
       checkCollisions()
     }
   }, [gameState, checkCollisions, moveObstacles])
@@ -116,6 +165,7 @@ function Game() {
     return () => {
       clearInterval(timer)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameLoop, initializeObstacles])
 
   useEffect(() => {
@@ -127,6 +177,7 @@ function Game() {
     setGameState('playing')
     setScore(0)
     setObstacles(initializeObstacles())
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initializeObstacles])
 
   useInput((_, key) => {
