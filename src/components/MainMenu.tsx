@@ -29,8 +29,8 @@ function MainMenu({
     <Box
       flexDirection="column"
       alignItems="center"
-      height={columns}
-      width={rows}
+      minHeight={columns}
+      minWidth={rows}
       justifyContent="center"
     >
       <Box flexDirection="column" alignSelf="center" alignItems="center">
@@ -41,11 +41,11 @@ function MainMenu({
 
         <Box flexDirection="column" marginTop={1} alignItems="flex-start">
           <Text color={selectedOption === 0 ? 'green' : 'white'}>
-            {selectedOption === 0 ? ' 🛣️  ' : '   '}
+            {selectedOption === 0 ? '🏁  ' : '    '}
             Start Game
           </Text>
           <Text color={selectedOption === 1 ? 'red' : 'white'}>
-            {selectedOption === 1 ? '💣 ' : '    '}
+            {selectedOption === 1 ? '👋  ' : '    '}
             Exit
           </Text>
         </Box>

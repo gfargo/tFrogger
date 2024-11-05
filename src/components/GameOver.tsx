@@ -30,8 +30,8 @@ function GameOver({
       alignItems="center"
       // minHeight={BOARD_HEIGHT}
       // minWidth={BOARD_WIDTH}
-      height={columns}
-      width={rows}
+      minHeight={columns}
+      minWidth={rows}
       justifyContent="center"
     >
       <Text bold>Game Over</Text>
