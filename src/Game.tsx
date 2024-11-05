@@ -1,4 +1,4 @@
-import { useInput } from 'ink'
+import { useApp, useInput } from 'ink'
 import React, {
   useCallback,
   useEffect,
@@ -48,6 +48,7 @@ const frogReducer = (state: FrogState, action: FrogAction): FrogState => {
 }
 
 function Game() {
+  const { exit } = useApp()
   const [frogState, dispatchFrog] = useReducer(frogReducer, {
     position: { x: BOARD_WIDTH / 2, y: BOARD_HEIGHT - 1 },
     onLogId: undefined,
@@ -236,18 +237,14 @@ function Game() {
         onStart={() => {
           setGameState('playing')
         }}
-        onExit={() => process.exit()}
+        onExit={() => exit()}
       />
     )
   }
 
   if (gameState === 'gameOver') {
     return (
-      <GameOver
-        score={score}
-        onRestart={restartGame}
-        onExit={() => process.exit()}
-      />
+      <GameOver score={score} onRestart={restartGame} onExit={() => exit()} />
     )
   }
 
