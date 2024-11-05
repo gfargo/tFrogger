@@ -7,12 +7,14 @@ import {
   ROAD_HEIGHT,
   TILES,
 } from '../constants.js'
+import { ScreenDimensions } from '../hooks/useStdOutDimensions.js'
 import { type Obstacle, type Position } from '../types.js'
 
 export const renderBoard = (
   frogPosition: Position,
   obstacles: Obstacle[],
-  score: number
+  score: number,
+  screenDimensions: ScreenDimensions
 ) => {
   const board = []
   for (let y = 0; y < BOARD_HEIGHT; y++) {
@@ -45,10 +47,18 @@ export const renderBoard = (
   }
 
   return (
-    <Box flexDirection="column">
-      {board}
-      <Box>
-        <Text>Score: {score}</Text>
+    <Box
+      flexDirection="column"
+      width={screenDimensions[0]}
+      height={screenDimensions[1]}
+      justifyContent="center"
+      // alignItems="center"
+    >
+      <Box flexDirection="column">
+        {board}
+        <Box>
+          <Text>Score: {score}</Text>
+        </Box>
       </Box>
     </Box>
   )

@@ -1,6 +1,6 @@
 import { Box, Text, useInput } from 'ink'
 import React from 'react'
-import { BOARD_HEIGHT, BOARD_WIDTH } from '../constants.js'
+import { useStdoutDimensions } from '../hooks/useStdOutDimensions.js'
 
 function GameOver({
   score,
@@ -11,6 +11,7 @@ function GameOver({
   readonly onRestart: () => void
   readonly onExit: () => void
 }) {
+  const [rows, columns] = useStdoutDimensions()
   useInput((input, key) => {
     if (input.toLowerCase() === 'r') {
       onRestart()
@@ -27,8 +28,10 @@ function GameOver({
     <Box
       flexDirection="column"
       alignItems="center"
-      height={BOARD_HEIGHT}
-      width={BOARD_WIDTH}
+      // minHeight={BOARD_HEIGHT}
+      // minWidth={BOARD_WIDTH}
+      height={columns}
+      width={rows}
       justifyContent="center"
     >
       <Text bold>Game Over</Text>

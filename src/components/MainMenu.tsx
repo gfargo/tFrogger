@@ -1,6 +1,7 @@
 import { Box, Text, useInput } from 'ink'
 import React, { useState } from 'react'
-import { BOARD_HEIGHT, BOARD_WIDTH } from '../constants.js'
+import { FROG_ART } from '../constants.js'
+import { useStdoutDimensions } from '../hooks/useStdOutDimensions.js'
 
 function MainMenu({
   onStart,
@@ -9,6 +10,7 @@ function MainMenu({
   readonly onStart: () => void
   readonly onExit: () => void
 }) {
+  const [rows, columns] = useStdoutDimensions()
   const [selectedOption, setSelectedOption] = useState(0)
 
   useInput((_, key) => {
@@ -27,14 +29,15 @@ function MainMenu({
     <Box
       flexDirection="column"
       alignItems="center"
-      height={BOARD_HEIGHT}
-      width={BOARD_WIDTH}
+      height={columns}
+      width={rows}
       justifyContent="center"
     >
       <Box flexDirection="column" alignSelf="center" alignItems="center">
         <Text bold color="green">
-          tFrogger 🐸
+          {FROG_ART}
         </Text>
+        <Text bold>tFrogger</Text>
 
         <Box flexDirection="column" marginTop={1} alignItems="flex-start">
           <Text color={selectedOption === 0 ? 'green' : 'white'}>

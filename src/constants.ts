@@ -1,5 +1,6 @@
-export const BOARD_WIDTH = 40
+export const BOARD_WIDTH = 48
 export const BOARD_HEIGHT = 15
+
 export const RIVER_HEIGHT = 5
 export const ROAD_HEIGHT = 6
 
@@ -14,3 +15,12 @@ export const TILES = {
 }
 
 export const GAME_SPEED = 200 // Milliseconds
+
+export const FROG_ART = `
+       _     _
+      (')-=-(')
+    __(   "   )__
+   / _/'-----'\\_ \\
+___\\\\ \\\\     // //___
+>____)/_\\---/_\\(____<
+`

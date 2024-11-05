@@ -22,6 +22,7 @@ import {
 } from './helpers/collisionHelpers.js'
 import { initializeObstacles } from './helpers/obstacleHelpers.js'
 import { renderBoard } from './helpers/renderHelpers.js'
+import { useStdoutDimensions } from './hooks/useStdOutDimensions.js'
 import { type FrogAction, type FrogState, type Obstacle } from './types.js'
 
 const frogReducer = (state: FrogState, action: FrogAction): FrogState => {
@@ -49,6 +50,7 @@ const frogReducer = (state: FrogState, action: FrogAction): FrogState => {
 
 function Game() {
   const { exit } = useApp()
+  const screenDimensions = useStdoutDimensions()
   const [frogState, dispatchFrog] = useReducer(frogReducer, {
     position: { x: BOARD_WIDTH / 2, y: BOARD_HEIGHT - 1 },
     onLogId: undefined,
@@ -248,7 +250,7 @@ function Game() {
     )
   }
 
-  return renderBoard(frogState.position, obstacles, score)
+  return renderBoard(frogState.position, obstacles, score, screenDimensions)
 }
 
 export default Game
