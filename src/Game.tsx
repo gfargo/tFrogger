@@ -235,6 +235,7 @@ function Game() {
     return (
       <MainMenu
         onStart={() => {
+
           setGameState('playing')
         }}
         onExit={() => exit()}

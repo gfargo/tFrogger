@@ -12,7 +12,7 @@ import { type Obstacle, type Position } from '../types.js'
 export const renderBoard = (
   frogPosition: Position,
   obstacles: Obstacle[],
-  score: number, 
+  score: number
 ) => {
   const board = []
   for (let y = 0; y < BOARD_HEIGHT; y++) {
@@ -45,11 +45,11 @@ export const renderBoard = (
   }
 
   return (
-      <Box flexDirection="column">
-        {board}
-        <Box>
-          <Text>Score: {score}</Text>
-        </Box>
-      </Box> 
+    <Box flexDirection="column">
+      {board}
+      <Box>
+        <Text>Score: {score}</Text>
+      </Box>
+    </Box>
   )
 }

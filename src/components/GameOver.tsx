@@ -1,5 +1,6 @@
 import { Box, Text, useInput } from 'ink'
 import React from 'react'
+import { GAME_OVER_FROG_ART } from '../constants.js'
 import { useStdoutDimensions } from '../hooks/useStdOutDimensions.js'
 
 function GameOver({
@@ -34,6 +35,9 @@ function GameOver({
       minWidth={rows}
       justifyContent="center"
     >
+      <Text bold color="green" dimColor>
+        {GAME_OVER_FROG_ART}
+      </Text>
       <Text bold>Game Over</Text>
       <Box marginTop={1} flexDirection="column" alignItems="center">
         <Text italic>Final Score: {score}</Text>
