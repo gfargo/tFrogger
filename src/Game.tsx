@@ -22,6 +22,7 @@ import {
 } from './helpers/collisionHelpers.js'
 import { initializeObstacles } from './helpers/obstacleHelpers.js'
 import { renderBoard } from './helpers/renderHelpers.js'
+import { isHighScore, loadHighScores, saveHighScore } from './highScores.js'
 import { type FrogAction, type FrogState, type Obstacle } from './types.js'
 
 const frogReducer = (state: FrogState, action: FrogAction): FrogState => {
@@ -29,15 +30,12 @@ const frogReducer = (state: FrogState, action: FrogAction): FrogState => {
     case 'MOVE': {
       return { ...state, position: action.newPosition }
     }
-
     case 'SET_LOG_ID': {
       return { ...state, onLogId: action.logId }
     }
-
     case 'SET_LOG_ID_AND_POSITION': {
       return { position: action.newPosition, onLogId: action.logId }
     }
-
     case 'RESET': {
       return {
         position: { x: BOARD_WIDTH / 2, y: BOARD_HEIGHT - 1 },
@@ -58,6 +56,7 @@ function Game() {
     'menu'
   )
   const [score, setScore] = useState(0)
+  const [highScores, setHighScores] = useState(loadHighScores())
 
   const frogStateReference = useRef(frogState)
   const obstaclesReference = useRef(obstacles)
@@ -89,7 +88,6 @@ function Game() {
         setGameState('gameOver')
         dispatchFrog({ type: 'SET_LOG_ID', logId: undefined })
       }
-
       return
     }
 
@@ -166,7 +164,6 @@ function Game() {
     return () => {
       clearInterval(timer)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameLoop, initializeObstacles])
 
   useEffect(() => {
@@ -178,7 +175,6 @@ function Game() {
     setGameState('playing')
     setScore(0)
     setObstacles(initializeObstacles())
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initializeObstacles])
 
   useInput((_, key) => {
@@ -206,7 +202,6 @@ function Game() {
       return
     }
 
-    // Check if frog collided with a log
     const logCollision = obstacles.find(
       (obstacle) =>
         obstacle.type === 'log' &&
@@ -231,11 +226,26 @@ function Game() {
     dispatchFrog({ type: 'MOVE', newPosition })
   })
 
+  useEffect(() => {
+    if (gameState === 'gameOver' && isHighScore(score)) {
+      // someday prompt for the player's name.
+      const playerName = new Date().toLocaleString('en-US', {
+        year: '2-digit',
+        month: '2-digit',
+        day: '2-digit',
+        hour: 'numeric',
+        minute: 'numeric',
+        second: undefined,
+      })
+      saveHighScore(playerName, score)
+      setHighScores(loadHighScores())
+    }
+  }, [gameState, score])
+
   if (gameState === 'menu') {
     return (
       <MainMenu
         onStart={() => {
-
           setGameState('playing')
         }}
         onExit={() => exit()}
@@ -245,7 +255,12 @@ function Game() {
 
   if (gameState === 'gameOver') {
     return (
-      <GameOver score={score} onRestart={restartGame} onExit={() => exit()} />
+      <GameOver
+        score={score}
+        highScores={highScores}
+        onRestart={restartGame}
+        onExit={() => exit()}
+      />
     )
   }
 

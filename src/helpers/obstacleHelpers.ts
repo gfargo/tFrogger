@@ -1,6 +1,8 @@
 import {
   BOARD_HEIGHT,
   BOARD_WIDTH,
+  DEFAULT_MAX_LOG_LENGTH,
+  DEFAULT_MIN_LOG_LENGTH,
   RIVER_HEIGHT,
   ROAD_HEIGHT,
 } from '../constants.js'
@@ -22,7 +24,9 @@ export const initializeObstacles = (): Obstacle[] => {
 
   for (let y = 1; y <= RIVER_HEIGHT; y++) {
     for (let i = 0; i < 2; i++) {
-      const logLength = Math.floor(Math.random() * 3) + 1 // Random length between 1 and 3
+      const logLength =
+        Math.floor(Math.random() * DEFAULT_MAX_LOG_LENGTH) +
+        DEFAULT_MIN_LOG_LENGTH // Random length between 1 and 3
       newObstacles.push({
         id: `log-${y}-${i}`,
         position: { x: Math.floor(Math.random() * BOARD_WIDTH), y },
