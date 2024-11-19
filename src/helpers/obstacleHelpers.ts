@@ -6,7 +6,7 @@ export const initializeObstacles = (config: LevelConfig): Obstacle[] => {
   const roadHeight = config.height - config.riverWidth - 1
 
   // Initialize cars
-  for (let y = config.height - roadHeight +1; y < config.height - 1; y++) {
+  for (let y = config.height - roadHeight + 1; y < config.height - 1; y++) {
     for (let i = 1; i < config.carCount; i++) {
       newObstacles.push({
         id: `car-${y}-${i}`,
@@ -45,6 +45,20 @@ export const initializeObstacles = (config: LevelConfig): Obstacle[] => {
         direction: y % 2 === 0 ? 'left' : 'right',
         type: 'alligator',
         length: 2, // Alligators are 2 units long
+      })
+    }
+  }
+
+  // Initialize moving lilypads if enabled
+  if (config.hasMovingLilypads) {
+    const lilypadCount = Math.floor(config.width * config.lilypadDensity)
+    for (let i = 0; i < lilypadCount; i++) {
+      newObstacles.push({
+        id: `lilypad-${i}`,
+        position: { x: Math.floor(Math.random() * config.width), y: 0 },
+        direction: i % 2 === 0 ? 'left' : 'right',
+        type: 'lilypad',
+        length: 1,
       })
     }
   }

@@ -9,7 +9,8 @@ export const renderBoard = (
   obstacles: Obstacle[],
   score: number,
   config: LevelConfig,
-  currentLives: number
+  currentLives: number,
+  timeElapsed: number
 ) => {
   const board = []
   for (let y = 0; y < config.height; y++) {
@@ -35,6 +36,9 @@ export const renderBoard = (
             case 'alligator':
               row += TILES.ALLIGATOR
               break
+            case 'lilypad':
+              row += TILES.LILYPAD
+              break
             default:
               row += TILES.EMPTY
           }
@@ -57,7 +61,7 @@ export const renderBoard = (
     <Box flexDirection="column">
       {board}
       <Box>
-        <Text>Score: {score} | Level: {config.name} | Lives: {currentLives}/{config.livesCount}</Text>
+        <Text>Score: {score} | Level: {config.name} | Lives: {currentLives}/{config.livesCount} | Time Left: {Math.floor((config.timeLimit || 0) - timeElapsed)}</Text>
       </Box>
     </Box>
   )

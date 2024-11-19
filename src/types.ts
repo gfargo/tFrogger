@@ -7,7 +7,7 @@ export type Obstacle = {
   id: string
   position: Position
   direction: 'left' | 'right'
-  type: 'car' | 'log' | 'alligator'
+  type: 'car' | 'log' | 'alligator' | 'lilypad'
   length: number
 }
 

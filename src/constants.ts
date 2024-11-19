@@ -13,6 +13,7 @@ export const TILES = {
   RIVER: '🟦',
   ROAD: '⬛️',
   GOAL: '🏁',
+  LILYPAD: '🌿',
 }
 
 export const GAME_SPEED = 300 // Milliseconds

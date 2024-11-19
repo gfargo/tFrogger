@@ -1,5 +1,6 @@
-import { useApp, useInput } from 'ink'
+import { Text, useApp, useInput } from 'ink'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
+import FullSizeBox from './components/FullSizeBox.js'
 import { GAME_SPEED } from './constants.js'
 import {
   checkCarCollision,
@@ -148,25 +149,46 @@ function Game() {
     setGameState((prevState) => ({
       ...prevState,
       obstacles: prevState.obstacles.map((obstacle) => {
-        const newX =
-          obstacle.direction === 'left'
-            ? (obstacle.position.x -
-                currentLevelConfig.obstacleSpeed +
-                currentLevelConfig.width) %
-              currentLevelConfig.width
-            : (obstacle.position.x + currentLevelConfig.obstacleSpeed) %
-              currentLevelConfig.width
+        let newX = obstacle.position.x
+        let newY = obstacle.position.y
+
+        if (
+          obstacle.type === 'car' ||
+          obstacle.type === 'log' ||
+          obstacle.type === 'alligator'
+        ) {
+          newX =
+            obstacle.direction === 'left'
+              ? (obstacle.position.x -
+                  currentLevelConfig.obstacleSpeed +
+                  currentLevelConfig.width) %
+                currentLevelConfig.width
+              : (obstacle.position.x + currentLevelConfig.obstacleSpeed) %
+                currentLevelConfig.width
+        } else if (
+          obstacle.type === 'lilypad' &&
+          currentLevelConfig.hasMovingLilypads
+        ) {
+          newX =
+            obstacle.direction === 'left'
+              ? (obstacle.position.x -
+                  currentLevelConfig.obstacleSpeed / 2 +
+                  currentLevelConfig.width) %
+                currentLevelConfig.width
+              : (obstacle.position.x + currentLevelConfig.obstacleSpeed / 2) %
+                currentLevelConfig.width
+        }
 
         return {
           ...obstacle,
           position: {
             x: newX,
-            y: obstacle.position.y,
+            y: newY,
           },
         }
       }),
     }))
-  }, [getCurrentLevelConfig])
+  }, [])
 
   const gameLoop = useCallback(() => {
     if (gameState.gameStatus === 'playing') {
@@ -177,7 +199,7 @@ function Game() {
         timeElapsed: prevState.timeElapsed + GAME_SPEED / 1000,
       }))
     }
-  }, [gameState.gameStatus, moveObstacles, checkCollisions])
+  }, [gameState.gameStatus])
 
   useEffect(() => {
     const timer = setInterval(gameLoop, GAME_SPEED)
@@ -203,11 +225,7 @@ function Game() {
         setGameState((prevState) => ({ ...prevState, gameStatus: 'gameOver' }))
       }
     }
-  }, [
-    gameState.crossingsCompleted,
-    gameState.currentLevel,
-    getCurrentLevelConfig,
-  ])
+  }, [gameState.crossingsCompleted, gameState.currentLevel])
 
   const restartGame = useCallback(() => {
     setGameState({
@@ -326,12 +344,18 @@ function Game() {
     return <Dead livesRemaining={gameState.livesRemaining} />
   }
 
-  return renderBoard(
-    gameState.frogState.position,
-    gameState.obstacles,
-    gameState.score,
-    getCurrentLevelConfig(),
-    gameState.livesRemaining
+  return (
+    <FullSizeBox>
+      {renderBoard(
+        gameState.frogState.position,
+        gameState.obstacles,
+        gameState.score,
+        getCurrentLevelConfig(),
+        gameState.livesRemaining,
+        gameState.timeElapsed
+      )}
+      <Text>{gameState.frogState.onLogId}</Text>
+    </FullSizeBox>
   )
 }
 

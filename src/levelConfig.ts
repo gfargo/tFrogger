@@ -29,7 +29,7 @@ export const levelConfigs: LevelConfig[] = [
     width: BOARD_WIDTH,
     height: BOARD_HEIGHT,
     obstacleSpeed: 0.85,
-    carCount: 5,
+    carCount: 2,
     logCount: 5,
     minLogLength: 2,
     maxLogLength: 4,
@@ -38,13 +38,13 @@ export const levelConfigs: LevelConfig[] = [
     timeLimit: 60,
     pointMultiplier: 1,
     livesCount: 3,
-    hasAlligators: false,
-    alligatorCount: 0,
+    hasAlligators: true,
+    alligatorCount: 5,
     backgroundColor: '#000000',
     musicTrack: 'level1.mp3',
     crossingsToWin: 3,
-    hasMovingLilypads: false,
-    windEffect: 0
+    hasMovingLilypads: true,
+    windEffect: 5
   },
   {
     name: 2,
