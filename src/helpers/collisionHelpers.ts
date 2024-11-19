@@ -4,13 +4,14 @@ import { type Obstacle, type Position } from '../types.js'
 export const checkCarCollision = (
   position: Position,
   obstacles: Obstacle[],
-  _config: LevelConfig
+  _config: LevelConfig,
+  tolerance: number = 0
 ): boolean => {
   return obstacles.some(
     (obstacle) =>
       obstacle.type === 'car' &&
-      position.x >= obstacle.position.x &&
-      position.x < obstacle.position.x + obstacle.length &&
+      position.x + tolerance >= obstacle.position.x &&
+      position.x - tolerance < obstacle.position.x + obstacle.length &&
       obstacle.position.y === position.y
   )
 }
@@ -18,13 +19,14 @@ export const checkCarCollision = (
 export const checkLogCollision = (
   position: Position,
   obstacles: Obstacle[],
-  config: LevelConfig
+  config: LevelConfig,
+  tolerance: number = 0
 ): Obstacle | undefined => {
   return obstacles.find(
     (obstacle) =>
       (obstacle.type === 'log' || (config.hasAlligators && obstacle.type === 'alligator')) &&
-      position.x >= obstacle.position.x &&
-      position.x < obstacle.position.x + obstacle.length &&
+      position.x + tolerance >= obstacle.position.x &&
+      position.x - tolerance < obstacle.position.x + obstacle.length &&
       obstacle.position.y === position.y
   )
 }

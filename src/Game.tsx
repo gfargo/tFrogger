@@ -1,4 +1,4 @@
-import { Box, Text, useApp, useInput } from 'ink'
+import { Box, Text, useApp, useInput, useStderr } from 'ink'
 import React, {
   useCallback,
   useEffect,
@@ -33,17 +33,34 @@ interface GameState {
   timeElapsed: number
 }
 
+const ENABLE_DEBUG = false
+
 const frogReducer = (state: FrogState, action: FrogAction): FrogState => {
   switch (action.type) {
     case 'MOVE':
-      return { ...state, position: action.newPosition }
+      return {
+        ...state,
+        position: {
+          x: Math.round(action.newPosition.x),
+          y: Math.round(action.newPosition.y),
+        },
+      }
     case 'SET_LOG_ID':
       return { ...state, onLogId: action.logId }
     case 'SET_LOG_ID_AND_POSITION':
-      return { position: action.newPosition, onLogId: action.logId }
+      return {
+        position: {
+          x: Math.round(action.newPosition.x),
+          y: Math.round(action.newPosition.y),
+        },
+        onLogId: action.logId,
+      }
     case 'RESET':
       return {
-        position: { x: action.width / 2, y: action.height - 1 },
+        position: {
+          x: Math.floor(action.width / 2),
+          y: action.height - 1,
+        },
         onLogId: undefined,
       }
     default:
@@ -53,6 +70,8 @@ const frogReducer = (state: FrogState, action: FrogAction): FrogState => {
 
 function Game() {
   const { exit } = useApp()
+  const { write } = useStderr()
+
   const [frogState, dispatchFrog] = useReducer(frogReducer, {
     position: {
       x: levelConfigs[0]!.width / 2,
@@ -78,6 +97,16 @@ function Game() {
     frogStateRef.current = frogState
     gameStateRef.current = gameState
   }, [frogState, gameState])
+
+  const debugLog = useCallback((message: string, data?: any) => {
+    if (ENABLE_DEBUG) {
+      write(`[DEBUG] ${message} ${data ? JSON.stringify(data) : ''}\n`)
+    }
+  }, [])
+
+  useEffect(() => {
+    debugLog('Game state updated', { frogState, gameState })
+  }, [frogState, gameState, debugLog])
 
   const getCurrentLevelConfig = useCallback(() => {
     return levelConfigs[gameState.currentLevel - 1] as LevelConfig
@@ -117,17 +146,27 @@ function Game() {
     const { obstacles } = gameStateRef.current
     const currentLevelConfig = getCurrentLevelConfig()
     const { x, y } = position
+    const COLLISION_TOLERANCE = 0.1 // Tolerance value for collision detection
+
+    debugLog('Checking collisions', {
+      position,
+      onLogId,
+      obstacles: obstacles.length,
+    })
 
     // Check for lilypad collision before win condition
     if (y === 0) {
       const lilypadCollision = obstacles.find(
         (obstacle) =>
           obstacle.type === 'lilypad' &&
-          x >= Math.floor(obstacle.position.x) &&
-          x < Math.floor(obstacle.position.x) + obstacle.length &&
+          x + COLLISION_TOLERANCE >= Math.round(obstacle.position.x) &&
+          x - COLLISION_TOLERANCE <
+            Math.round(obstacle.position.x) + obstacle.length &&
           y === obstacle.position.y
       )
+      debugLog('Lilypad collision check', { lilypadCollision })
       if (!lilypadCollision) {
+        debugLog('Frog reached lilypad', { lilypadCollision })
         setGameState((prevState) => ({
           ...prevState,
           score: prevState.score + currentLevelConfig.pointMultiplier,
@@ -140,36 +179,57 @@ function Game() {
         })
         return
       } else {
+        debugLog('Frog missed lilypad')
         handleCollision()
         return
       }
     }
 
     if (isInRiver({ x, y }, currentLevelConfig)) {
+      debugLog('Frog in river')
       const logCollision = checkLogCollision(
         { x, y },
-        obstacles,
-        currentLevelConfig
+        obstacles.map((o) => ({
+          ...o,
+          position: { x: Math.round(o.position.x), y: o.position.y },
+        })),
+        currentLevelConfig,
+        COLLISION_TOLERANCE
       )
+      debugLog('Log collision check', { logCollision })
       if (logCollision) {
         dispatchFrog({ type: 'SET_LOG_ID', logId: logCollision.id })
       } else {
+        debugLog('Frog in water')
         handleCollision()
       }
       return
     }
 
     if (onLogId) {
+      debugLog('Frog leaving log')
       dispatchFrog({ type: 'SET_LOG_ID', logId: undefined })
     }
 
-    if (checkCarCollision({ x, y }, obstacles, currentLevelConfig)) {
+    const carCollision = checkCarCollision(
+      { x, y },
+      obstacles.map((o) => ({
+        ...o,
+        position: { x: Math.round(o.position.x), y: o.position.y },
+      })),
+      currentLevelConfig,
+      COLLISION_TOLERANCE
+    )
+    debugLog('Car collision check', { carCollision })
+    if (carCollision) {
+      debugLog('Frog hit by car')
       handleCollision()
     }
-  }, [getCurrentLevelConfig, handleCollision])
+  }, [getCurrentLevelConfig, handleCollision, debugLog])
 
   const moveObstacles = useCallback(() => {
     const currentLevelConfig = getCurrentLevelConfig()
+    debugLog('Moving obstacles', { currentLevel: currentLevelConfig })
     setGameState((prevState) => {
       const newObstacles = prevState.obstacles.map((obstacle) => {
         let newX = obstacle.position.x
@@ -186,9 +246,13 @@ function Game() {
         ) {
           newX =
             obstacle.direction === 'left'
-              ? (obstacle.position.x - speed + currentLevelConfig.width) %
-                currentLevelConfig.width
-              : (obstacle.position.x + speed) % currentLevelConfig.width
+              ? Math.round(
+                  (obstacle.position.x - speed + currentLevelConfig.width) %
+                    currentLevelConfig.width
+                )
+              : Math.round(
+                  (obstacle.position.x + speed) % currentLevelConfig.width
+                )
         }
 
         return {
@@ -203,6 +267,7 @@ function Game() {
       let newFrogState = { ...frogStateRef.current }
 
       if (newFrogState.onLogId) {
+        debugLog('Frog on log', { logId: newFrogState.onLogId })
         const updatedLog = newObstacles.find(
           (o) => o.id === newFrogState.onLogId
         )
@@ -212,23 +277,28 @@ function Game() {
           )
           if (currentLog) {
             const relativePosition =
-              newFrogState.position.x - currentLog.position.x
+              newFrogState.position.x - Math.round(currentLog.position.x)
             newFrogState.position = {
               x:
                 updatedLog.direction === 'left'
-                  ? Math.floor(
-                      updatedLog.position.x +
+                  ? Math.round(
+                      (updatedLog.position.x +
                         relativePosition +
+                        currentLevelConfig.width) %
                         currentLevelConfig.width
-                    ) % currentLevelConfig.width
-                  : Math.ceil(
+                    )
+                  : Math.round(
                       (updatedLog.position.x + relativePosition) %
                         currentLevelConfig.width
                     ),
               y: newFrogState.position.y,
             }
+            debugLog('Updated frog position on log', {
+              newPosition: newFrogState.position,
+            })
           }
         } else {
+          debugLog('Frog log not found', { logId: newFrogState.onLogId })
           newFrogState.onLogId = undefined
         }
       }
@@ -241,7 +311,7 @@ function Game() {
 
       return { ...prevState, obstacles: newObstacles }
     })
-  }, [getCurrentLevelConfig])
+  }, [getCurrentLevelConfig, debugLog])
 
   const gameLoop = useCallback(() => {
     if (gameStateRef.current.gameStatus === 'playing') {
@@ -310,7 +380,12 @@ function Game() {
 
     const currentLevelConfig = getCurrentLevelConfig()
     const { position, onLogId } = frogStateRef.current
-    const newPosition = { ...position }
+    const newPosition = {
+      x: Math.round(position.x),
+      y: Math.round(position.y),
+    }
+
+    debugLog('Input received', { key, currentPosition: position })
 
     if (key.leftArrow) {
       newPosition.x = Math.max(0, newPosition.x - 1)
@@ -322,16 +397,25 @@ function Game() {
       newPosition.y = Math.min(currentLevelConfig.height - 1, newPosition.y + 1)
     }
 
+    debugLog('New position calculated', { newPosition })
+
     if (
       onLogId &&
       (key.leftArrow || key.rightArrow) &&
       !isFrogOnLog(
         newPosition,
         onLogId,
-        gameStateRef.current.obstacles,
+        gameStateRef.current.obstacles.map((o) => ({
+          ...o,
+          position: {
+            x: Math.round(o.position.x),
+            y: o.position.y,
+          },
+        })),
         currentLevelConfig
       )
     ) {
+      debugLog('Frog fell off log', { onLogId, newPosition })
       handleCollision()
       return
     }
@@ -339,11 +423,12 @@ function Game() {
     const logCollision = gameStateRef.current.obstacles.find(
       (obstacle) =>
         obstacle.type === 'log' &&
-        newPosition.x >= obstacle.position.x &&
-        newPosition.x < obstacle.position.x + obstacle.length &&
+        newPosition.x >= Math.round(obstacle.position.x) &&
+        newPosition.x < Math.round(obstacle.position.x) + obstacle.length &&
         obstacle.position.y === newPosition.y
     )
     if (logCollision) {
+      debugLog('Frog landed on log', { logId: logCollision.id, newPosition })
       dispatchFrog({
         type: 'SET_LOG_ID_AND_POSITION',
         logId: logCollision.id,
@@ -353,10 +438,15 @@ function Game() {
     }
 
     if (newPosition.y > 0 && newPosition.y <= currentLevelConfig.riverWidth) {
+      debugLog('Frog entered river', {
+        newPosition,
+        riverWidth: currentLevelConfig.riverWidth,
+      })
       handleCollision()
       return
     }
 
+    debugLog('Frog moved', { newPosition })
     dispatchFrog({ type: 'MOVE', newPosition })
   })
 
