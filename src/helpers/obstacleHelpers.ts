@@ -1,20 +1,16 @@
-import {
-  BOARD_HEIGHT,
-  BOARD_WIDTH,
-  DEFAULT_MAX_LOG_LENGTH,
-  DEFAULT_MIN_LOG_LENGTH,
-  RIVER_HEIGHT,
-  ROAD_HEIGHT,
-} from '../constants.js'
+import { LevelConfig } from '../levelConfig.js'
 import { type Obstacle } from '../types.js'
 
-export const initializeObstacles = (): Obstacle[] => {
+export const initializeObstacles = (config: LevelConfig): Obstacle[] => {
   const newObstacles: Obstacle[] = []
-  for (let y = BOARD_HEIGHT - ROAD_HEIGHT - 1; y < BOARD_HEIGHT - 1; y++) {
-    for (let i = 0; i < 3; i++) {
+  const roadHeight = config.height - config.riverWidth - 1
+
+  // Initialize cars
+  for (let y = config.height - roadHeight +1; y < config.height - 1; y++) {
+    for (let i = 1; i < config.carCount; i++) {
       newObstacles.push({
         id: `car-${y}-${i}`,
-        position: { x: Math.floor(Math.random() * BOARD_WIDTH), y },
+        position: { x: Math.floor(Math.random() * config.width), y },
         direction: y % 2 === 0 ? 'left' : 'right',
         type: 'car',
         length: 1,
@@ -22,17 +18,33 @@ export const initializeObstacles = (): Obstacle[] => {
     }
   }
 
-  for (let y = 1; y <= RIVER_HEIGHT; y++) {
-    for (let i = 0; i < 2; i++) {
+  // Initialize logs
+  for (let y = 1; y <= config.riverWidth; y++) {
+    for (let i = 0; i < config.logCount; i++) {
       const logLength =
-        Math.floor(Math.random() * DEFAULT_MAX_LOG_LENGTH) +
-        DEFAULT_MIN_LOG_LENGTH // Random length between 1 and 3
+        Math.floor(
+          Math.random() * (config.maxLogLength - config.minLogLength + 1)
+        ) + config.minLogLength
       newObstacles.push({
         id: `log-${y}-${i}`,
-        position: { x: Math.floor(Math.random() * BOARD_WIDTH), y },
+        position: { x: Math.floor(Math.random() * config.width), y },
         direction: y % 2 === 0 ? 'left' : 'right',
         type: 'log',
         length: logLength,
+      })
+    }
+  }
+
+  // Initialize alligators if enabled
+  if (config.hasAlligators) {
+    for (let i = 0; i < config.alligatorCount; i++) {
+      const y = Math.floor(Math.random() * config.riverWidth) + 1
+      newObstacles.push({
+        id: `alligator-${i}`,
+        position: { x: Math.floor(Math.random() * config.width), y },
+        direction: y % 2 === 0 ? 'left' : 'right',
+        type: 'alligator',
+        length: 2, // Alligators are 2 units long
       })
     }
   }

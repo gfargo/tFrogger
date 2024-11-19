@@ -1,22 +1,21 @@
-export const BOARD_WIDTH = 48
+export const BOARD_WIDTH = 32
 export const BOARD_HEIGHT = 15
 
-export const RIVER_HEIGHT = 5
-export const ROAD_HEIGHT = 6
 export const DEFAULT_MIN_LOG_LENGTH = 2
 export const DEFAULT_MAX_LOG_LENGTH = 3
 
 export const TILES = {
   EMPTY: '⬜️',
   FROG: '🐸',
+  ALLIGATOR: '🐊',
   CAR: '🚗',
   LOG: '🟫',
   RIVER: '🟦',
-  ROAD: '🔳',
+  ROAD: '⬛️',
   GOAL: '🏁',
 }
 
-export const GAME_SPEED = 200 // Milliseconds
+export const GAME_SPEED = 300 // Milliseconds
 
 export const FROG_ART = `
        _     _

@@ -1,7 +1,7 @@
 import { Box, Text, useInput } from 'ink'
 import React from 'react'
+import FullSizeBox from '../components/FullSizeBox.js'
 import { GAME_OVER_FROG_ART } from '../constants.js'
-import { useStdoutDimensions } from '../hooks/useStdOutDimensions.js'
 
 interface HighScore {
   name: string
@@ -19,7 +19,6 @@ function GameOver({
   readonly onRestart: () => void
   readonly onExit: () => void
 }) {
-  const [rows, columns] = useStdoutDimensions()
   const [displayHighScores, toggleDisplayHighScores] = React.useState(false)
 
   useInput((input, key) => {
@@ -37,13 +36,7 @@ function GameOver({
   })
 
   return (
-    <Box
-      flexDirection="column"
-      alignItems="center"
-      minHeight={columns}
-      minWidth={rows}
-      justifyContent="center"
-    >
+    <FullSizeBox>
       {displayHighScores ? (
         <Box
           marginTop={1}
@@ -77,7 +70,7 @@ function GameOver({
             {GAME_OVER_FROG_ART}
           </Text>
           <Text bold>Game Over</Text>
-          <Box marginTop={1} flexDirection="column" alignItems="center">
+          <Box flexDirection="column" alignItems="center">
             <Text italic>Final Score: {score}</Text>
           </Box>
         </>
@@ -88,7 +81,7 @@ function GameOver({
           &apos;Q&apos; quit
         </Text>
       </Box>
-    </Box>
+    </FullSizeBox>
   )
 }
 
