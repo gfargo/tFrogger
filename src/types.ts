@@ -26,4 +26,4 @@ export type FrogAction =
       logId: LogId
       newPosition: Position
     }
-  | { type: 'RESET' }
+  | { type: 'RESET', width: number, height: number }
