@@ -66,9 +66,7 @@ const frogReducer = (state: FrogState, action: FrogAction): FrogState => {
   }
 }
 
-function Game({debugMode} : {
-  debugMode: boolean
-}) {
+function Game({ debugMode }: { debugMode?: boolean }) {
   const { exit } = useApp()
   const { write } = useStderr()
 
