@@ -33,8 +33,6 @@ interface GameState {
   timeElapsed: number
 }
 
-const ENABLE_DEBUG = false
-
 const frogReducer = (state: FrogState, action: FrogAction): FrogState => {
   switch (action.type) {
     case 'MOVE':
@@ -68,7 +66,9 @@ const frogReducer = (state: FrogState, action: FrogAction): FrogState => {
   }
 }
 
-function Game() {
+function Game({debugMode} : {
+  debugMode: boolean
+}) {
   const { exit } = useApp()
   const { write } = useStderr()
 
@@ -99,7 +99,7 @@ function Game() {
   }, [frogState, gameState])
 
   const debugLog = useCallback((message: string, data?: any) => {
-    if (ENABLE_DEBUG) {
+    if (debugMode) {
       write(`[DEBUG] ${message} ${data ? JSON.stringify(data) : ''}\n`)
     }
   }, [])

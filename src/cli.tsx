@@ -1,28 +1,30 @@
 #!/usr/bin/env node
 import { render } from 'ink'
+import meow from 'meow'
 import React from 'react'
 import Game from './Game.js'
 
-// For CLI Options and Arguments.., use meow
-// import meow from 'meow';
+const cli = meow(
+  `
+	Usage
+	  $ tFrogger
 
-// const cli = meow(
-// 	`
-// 	Usage
-// 	  $ tFrogger
+  Options
+    --debug Show debug information
 
-// 	b
-// 	Examples
-// 	  $ tFrogger
-// `,
-// 	{
-// 		importMeta: import.meta,
-// 		flags: {
-// 			// name: {
-// 			// 	type: 'string',
-// 			// },
-// 		},
-// 	},
-// );
+	Examples
+	  $ tFrogger
+    $ tFrogger --debug
+`,
+  {
+    importMeta: import.meta,
+    flags: {
+      debug: {
+        type: 'boolean',
+        default: false,
+      },
+    },
+  }
+)
 
-render(<Game />)
+render(<Game debugMode={cli.flags.debug} />)
