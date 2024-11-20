@@ -1,4 +1,4 @@
-import { Box, Text, useApp, useInput, useStderr } from 'ink'
+import { useApp, useInput, useStderr } from 'ink'
 import React, {
   useCallback,
   useEffect,
@@ -501,12 +501,6 @@ function Game() {
         gameState.livesRemaining,
         gameState.timeElapsed
       )}
-      <Box gap={2} minHeight={1}>
-        <Text>{frogStateRef.current.onLogId}</Text>
-        <Text>
-          {frogStateRef.current.position.x} / {frogStateRef.current.position.y}
-        </Text>
-      </Box>
     </FullSizeBox>
   )
 }

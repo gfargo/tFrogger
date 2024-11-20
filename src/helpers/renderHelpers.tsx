@@ -44,7 +44,10 @@ export const renderBoard = (
           }
         } else if (y > 0 && y <= config.riverWidth) {
           row += TILES.RIVER
-        } else if (y > config.height - (config.height - config.riverWidth - 1) - 1 && y < config.height - 1) {
+        } else if (
+          y > config.height - (config.height - config.riverWidth - 1) - 1 &&
+          y < config.height - 1
+        ) {
           row += TILES.ROAD
         } else if (y === 0) {
           row += TILES.GOAL
@@ -61,7 +64,11 @@ export const renderBoard = (
     <Box flexDirection="column">
       {board}
       <Box>
-        <Text>Score: {score} | Level: {config.name} | Lives: {currentLives}/{config.livesCount} | Time Left: {Math.floor((config.timeLimit || 0) - timeElapsed)}</Text>
+        <Text>
+          Level: {config.name} | Score: {score} | Lives: {currentLives}/
+          {config.livesCount} | Time Left:{' '}
+          {Math.floor((config.timeLimit || 0) - timeElapsed)}
+        </Text>
       </Box>
     </Box>
   )

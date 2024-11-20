@@ -1,5 +1,5 @@
-export const BOARD_WIDTH = 32
-export const BOARD_HEIGHT = 15
+export const BOARD_WIDTH = 60
+export const BOARD_HEIGHT = 16
 
 export const DEFAULT_MIN_LOG_LENGTH = 2
 export const DEFAULT_MAX_LOG_LENGTH = 3
