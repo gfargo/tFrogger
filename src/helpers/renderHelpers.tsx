@@ -1,23 +1,21 @@
 import { Box, Text } from 'ink'
 import React from 'react'
-import {
-  BOARD_HEIGHT,
-  BOARD_WIDTH,
-  RIVER_HEIGHT,
-  ROAD_HEIGHT,
-  TILES,
-} from '../constants.js'
+import { TILES } from '../constants.js'
+import { LevelConfig } from '../levelConfig.js'
 import { type Obstacle, type Position } from '../types.js'
 
 export const renderBoard = (
   frogPosition: Position,
   obstacles: Obstacle[],
-  score: number
+  score: number,
+  config: LevelConfig,
+  currentLives: number,
+  timeElapsed: number
 ) => {
   const board = []
-  for (let y = 0; y < BOARD_HEIGHT; y++) {
+  for (let y = 0; y < config.height; y++) {
     let row = ''
-    for (let x = 0; x < BOARD_WIDTH; x++) {
+    for (let x = 0; x < config.width; x++) {
       if (x === frogPosition.x && y === frogPosition.y) {
         row += TILES.FROG
       } else {
@@ -28,10 +26,28 @@ export const renderBoard = (
             o.position.y === y
         )
         if (obstacle) {
-          row += obstacle.type === 'car' ? TILES.CAR : TILES.LOG
-        } else if (y > 0 && y <= RIVER_HEIGHT) {
+          switch (obstacle.type) {
+            case 'car':
+              row += TILES.CAR
+              break
+            case 'log':
+              row += TILES.LOG
+              break
+            case 'alligator':
+              row += TILES.ALLIGATOR
+              break
+            case 'lilypad':
+              row += TILES.LILYPAD
+              break
+            default:
+              row += TILES.EMPTY
+          }
+        } else if (y > 0 && y <= config.riverWidth) {
           row += TILES.RIVER
-        } else if (y > BOARD_HEIGHT - ROAD_HEIGHT - 1 && y < BOARD_HEIGHT - 1) {
+        } else if (
+          y > config.height - (config.height - config.riverWidth - 1) - 1 &&
+          y < config.height - 1
+        ) {
           row += TILES.ROAD
         } else if (y === 0) {
           row += TILES.GOAL
@@ -48,7 +64,11 @@ export const renderBoard = (
     <Box flexDirection="column">
       {board}
       <Box>
-        <Text>Score: {score}</Text>
+        <Text>
+          Level: {config.name} | Score: {score} | Lives: {currentLives}/
+          {config.livesCount} | Time Left:{' '}
+          {Math.floor((config.timeLimit || 0) - timeElapsed)}
+        </Text>
       </Box>
     </Box>
   )

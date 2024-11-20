@@ -7,7 +7,7 @@ export type Obstacle = {
   id: string
   position: Position
   direction: 'left' | 'right'
-  type: 'car' | 'log'
+  type: 'car' | 'log' | 'alligator' | 'lilypad'
   length: number
 }
 
@@ -26,4 +26,4 @@ export type FrogAction =
       logId: LogId
       newPosition: Position
     }
-  | { type: 'RESET' }
+  | { type: 'RESET', width: number, height: number }
