@@ -1,6 +1,6 @@
 {
   "name": "tfrogger",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A frogger clone built for the Terminal",
   "author": "gfargo <ghfargo@gmail.com>",
   "license": "MIT",
