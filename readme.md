@@ -1,5 +1,9 @@
 # tFrogger 🐸
 
+[![npm version](https://img.shields.io/npm/v/tfrogger)](https://www.npmjs.com/package/tfrogger)
+[![npm downloads](https://img.shields.io/npm/dm/tfrogger)](https://www.npmjs.com/package/tfrogger)
+[![GitHub stars](https://img.shields.io/github/stars/gfargo/tfrogger?logo=github)](https://github.com/gfargo/tfrogger)
+
 Welcome to **tFrogger**! A terminal-based Frogger game built with React and Ink, bringing the classic arcade experience right to your command line. 🎮
 
 ## Overview 🌟
