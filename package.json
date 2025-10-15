@@ -27,7 +27,7 @@
     "ink": "^4.1.0",
     "meow": "^11.0.0",
     "react": "^18.2.0",
-    "release-it": "^17.10.0"
+    "release-it": "^19.0.0"
   },
   "devDependencies": {
     "@ava/typescript": "^5.0.0",
