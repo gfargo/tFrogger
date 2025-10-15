@@ -3,11 +3,11 @@ import React from 'react'
 import FullSizeBox from '../components/FullSizeBox.js'
 import { GAME_OVER_FROG_ART } from '../constants.js'
 
-interface DeadProps {
-  livesRemaining: number
+type DeadProperties = {
+  readonly livesRemaining: number
 }
 
-function Dead({ livesRemaining }: DeadProps) {
+function Dead({ livesRemaining }: DeadProperties) {
   return (
     <FullSizeBox>
       <>

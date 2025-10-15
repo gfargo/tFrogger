@@ -27,4 +27,4 @@ const cli = meow(
   }
 )
 
-render(<Game debugMode={cli.flags.debug} />)
+render(<Game isDebugMode={cli.flags.debug} />)

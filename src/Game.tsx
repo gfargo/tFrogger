@@ -17,13 +17,13 @@ import {
 import { initializeObstacles } from './helpers/obstacleHelpers.js'
 import { renderBoard } from './helpers/renderHelpers.js'
 import { isHighScore, loadHighScores, saveHighScore } from './highScores.js'
-import { LevelConfig, levelConfigs } from './levelConfig.js'
+import { levelConfigs } from './levelConfig.js'
 import Dead from './screens/Dead.js'
 import GameOver from './screens/GameOver.js'
 import MainMenu from './screens/MainMenu.js'
 import { type FrogAction, type FrogState, type Obstacle } from './types.js'
 
-interface GameState {
+type GameState = {
   obstacles: Obstacle[]
   gameStatus: 'menu' | 'playing' | 'gameOver' | 'dead'
   score: number
@@ -33,9 +33,13 @@ interface GameState {
   timeElapsed: number
 }
 
+const assertNever = (value: never): never => {
+  throw new Error(`Unhandled action: ${String(value)}`)
+}
+
 const frogReducer = (state: FrogState, action: FrogAction): FrogState => {
   switch (action.type) {
-    case 'MOVE':
+    case 'MOVE': {
       return {
         ...state,
         position: {
@@ -43,9 +47,13 @@ const frogReducer = (state: FrogState, action: FrogAction): FrogState => {
           y: Math.round(action.newPosition.y),
         },
       }
-    case 'SET_LOG_ID':
+    }
+
+    case 'SET_LOG_ID': {
       return { ...state, onLogId: action.logId }
-    case 'SET_LOG_ID_AND_POSITION':
+    }
+
+    case 'SET_LOG_ID_AND_POSITION': {
       return {
         position: {
           x: Math.round(action.newPosition.x),
@@ -53,7 +61,9 @@ const frogReducer = (state: FrogState, action: FrogAction): FrogState => {
         },
         onLogId: action.logId,
       }
-    case 'RESET':
+    }
+
+    case 'RESET': {
       return {
         position: {
           x: Math.floor(action.width / 2),
@@ -61,12 +71,13 @@ const frogReducer = (state: FrogState, action: FrogAction): FrogState => {
         },
         onLogId: undefined,
       }
-    default:
-      return state
+    }
   }
+
+  return assertNever(action)
 }
 
-function Game({ debugMode }: { debugMode?: boolean }) {
+function Game({ isDebugMode }: { readonly isDebugMode?: boolean }) {
   const { exit } = useApp()
   const { write } = useStderr()
 
@@ -78,55 +89,59 @@ function Game({ debugMode }: { debugMode?: boolean }) {
     onLogId: undefined,
   })
   const [gameState, setGameState] = useState<GameState>(() => ({
-    obstacles: initializeObstacles(levelConfigs[0] as LevelConfig),
+    obstacles: initializeObstacles(levelConfigs[0]!),
     gameStatus: 'menu',
     score: 0,
     currentLevel: 1,
-    livesRemaining: (levelConfigs[0] as LevelConfig).livesCount,
+    livesRemaining: levelConfigs[0]!.livesCount,
     crossingsCompleted: 0,
     timeElapsed: 0,
   }))
   const [highScores, setHighScores] = useState(loadHighScores())
 
-  const frogStateRef = useRef(frogState)
-  const gameStateRef = useRef(gameState)
+  const frogStateReference = useRef(frogState)
+  const gameStateReference = useRef(gameState)
 
   useEffect(() => {
-    frogStateRef.current = frogState
-    gameStateRef.current = gameState
+    frogStateReference.current = frogState
+    gameStateReference.current = gameState
   }, [frogState, gameState])
 
-  const debugLog = useCallback((message: string, data?: any) => {
-    if (debugMode) {
-      write(`[DEBUG] ${message} ${data ? JSON.stringify(data) : ''}\n`)
-    }
-  }, [])
+  const debugLog = useCallback(
+    (message: string, data?: unknown) => {
+      if (isDebugMode) {
+        write(`[DEBUG] ${message} ${data ? JSON.stringify(data) : ''}\n`)
+      }
+    },
+    [isDebugMode, write]
+  )
 
   useEffect(() => {
     debugLog('Game state updated', { frogState, gameState })
   }, [frogState, gameState, debugLog])
 
   const getCurrentLevelConfig = useCallback(() => {
-    return levelConfigs[gameState.currentLevel - 1] as LevelConfig
+    return levelConfigs[gameState.currentLevel - 1]!
   }, [gameState.currentLevel])
 
   const handleCollision = useCallback(() => {
-    setGameState((prevState) => {
-      const newLivesRemaining = prevState.livesRemaining - 1
+    setGameState((previousState) => {
+      const newLivesRemaining = previousState.livesRemaining - 1
       return {
-        ...prevState,
+        ...previousState,
         livesRemaining: newLivesRemaining,
         gameStatus: 'dead',
       }
     })
 
     setTimeout(() => {
-      setGameState((prevState) => {
-        if (prevState.livesRemaining <= 0) {
-          return { ...prevState, gameStatus: 'gameOver' }
+      setGameState((previousState) => {
+        if (previousState.livesRemaining <= 0) {
+          return { ...previousState, gameStatus: 'gameOver' }
         }
+
         return {
-          ...prevState,
+          ...previousState,
           gameStatus: 'playing',
         }
       })
@@ -140,8 +155,8 @@ function Game({ debugMode }: { debugMode?: boolean }) {
   }, [getCurrentLevelConfig])
 
   const checkCollisions = useCallback(() => {
-    const { position, onLogId } = frogStateRef.current
-    const { obstacles } = gameStateRef.current
+    const { position, onLogId } = frogStateReference.current
+    const { obstacles } = gameStateReference.current
     const currentLevelConfig = getCurrentLevelConfig()
     const { x, y } = position
     const COLLISION_TOLERANCE = 0.1 // Tolerance value for collision detection
@@ -165,10 +180,10 @@ function Game({ debugMode }: { debugMode?: boolean }) {
       debugLog('Lilypad collision check', { lilypadCollision })
       if (!lilypadCollision) {
         debugLog('Frog reached lilypad', { lilypadCollision })
-        setGameState((prevState) => ({
-          ...prevState,
-          score: prevState.score + currentLevelConfig.pointMultiplier,
-          crossingsCompleted: prevState.crossingsCompleted + 1,
+        setGameState((previousState) => ({
+          ...previousState,
+          score: previousState.score + currentLevelConfig.pointMultiplier,
+          crossingsCompleted: previousState.crossingsCompleted + 1,
         }))
         dispatchFrog({
           type: 'RESET',
@@ -176,11 +191,11 @@ function Game({ debugMode }: { debugMode?: boolean }) {
           height: currentLevelConfig.height,
         })
         return
-      } else {
-        debugLog('Frog missed lilypad')
-        handleCollision()
-        return
       }
+
+      debugLog('Frog missed lilypad')
+      handleCollision()
+      return
     }
 
     if (isInRiver({ x, y }, currentLevelConfig)) {
@@ -201,6 +216,7 @@ function Game({ debugMode }: { debugMode?: boolean }) {
         debugLog('Frog in water')
         handleCollision()
       }
+
       return
     }
 
@@ -228,8 +244,8 @@ function Game({ debugMode }: { debugMode?: boolean }) {
   const moveObstacles = useCallback(() => {
     const currentLevelConfig = getCurrentLevelConfig()
     debugLog('Moving obstacles', { currentLevel: currentLevelConfig })
-    setGameState((prevState) => {
-      const newObstacles = prevState.obstacles.map((obstacle) => {
+    setGameState((previousState) => {
+      const newObstacles = previousState.obstacles.map((obstacle) => {
         let newX = obstacle.position.x
         const speed =
           obstacle.type === 'lilypad' && currentLevelConfig.hasMovingLilypads
@@ -262,7 +278,7 @@ function Game({ debugMode }: { debugMode?: boolean }) {
         }
       })
 
-      let newFrogState = { ...frogStateRef.current }
+      const newFrogState = { ...frogStateReference.current }
 
       if (newFrogState.onLogId) {
         debugLog('Frog on log', { logId: newFrogState.onLogId })
@@ -270,7 +286,7 @@ function Game({ debugMode }: { debugMode?: boolean }) {
           (o) => o.id === newFrogState.onLogId
         )
         if (updatedLog) {
-          const currentLog = prevState.obstacles.find(
+          const currentLog = previousState.obstacles.find(
             (o) => o.id === newFrogState.onLogId
           )
           if (currentLog) {
@@ -307,17 +323,17 @@ function Game({ debugMode }: { debugMode?: boolean }) {
         newPosition: newFrogState.position,
       })
 
-      return { ...prevState, obstacles: newObstacles }
+      return { ...previousState, obstacles: newObstacles }
     })
   }, [getCurrentLevelConfig, debugLog])
 
   const gameLoop = useCallback(() => {
-    if (gameStateRef.current.gameStatus === 'playing') {
+    if (gameStateReference.current.gameStatus === 'playing') {
       moveObstacles()
       checkCollisions()
-      setGameState((prevState) => ({
-        ...prevState,
-        timeElapsed: prevState.timeElapsed + GAME_SPEED / 1000,
+      setGameState((previousState) => ({
+        ...previousState,
+        timeElapsed: previousState.timeElapsed + GAME_SPEED / 1000,
       }))
     }
   }, [moveObstacles, checkCollisions])
@@ -333,12 +349,12 @@ function Game({ debugMode }: { debugMode?: boolean }) {
     const currentLevelConfig = getCurrentLevelConfig()
     if (gameState.crossingsCompleted >= currentLevelConfig.crossingsToWin) {
       if (gameState.currentLevel < levelConfigs.length) {
-        setGameState((prevState) => ({
-          ...prevState,
-          currentLevel: prevState.currentLevel + 1,
+        setGameState((previousState) => ({
+          ...previousState,
+          currentLevel: previousState.currentLevel + 1,
           crossingsCompleted: 0,
           obstacles: initializeObstacles(
-            levelConfigs[prevState.currentLevel] as LevelConfig
+            levelConfigs[previousState.currentLevel]!
           ),
         }))
         dispatchFrog({
@@ -347,7 +363,10 @@ function Game({ debugMode }: { debugMode?: boolean }) {
           height: levelConfigs[gameState.currentLevel]!.height,
         })
       } else {
-        setGameState((prevState) => ({ ...prevState, gameStatus: 'gameOver' }))
+        setGameState((previousState) => ({
+          ...previousState,
+          gameStatus: 'gameOver',
+        }))
       }
     }
   }, [
@@ -358,11 +377,11 @@ function Game({ debugMode }: { debugMode?: boolean }) {
 
   const restartGame = useCallback(() => {
     setGameState({
-      obstacles: initializeObstacles(levelConfigs[0] as LevelConfig),
+      obstacles: initializeObstacles(levelConfigs[0]!),
       gameStatus: 'playing',
       score: 0,
       currentLevel: 1,
-      livesRemaining: (levelConfigs[0] as LevelConfig).livesCount,
+      livesRemaining: levelConfigs[0]!.livesCount,
       crossingsCompleted: 0,
       timeElapsed: 0,
     })
@@ -374,10 +393,10 @@ function Game({ debugMode }: { debugMode?: boolean }) {
   }, [])
 
   useInput((_input, key) => {
-    if (gameStateRef.current.gameStatus !== 'playing') return
+    if (gameStateReference.current.gameStatus !== 'playing') return
 
     const currentLevelConfig = getCurrentLevelConfig()
-    const { position, onLogId } = frogStateRef.current
+    const { position, onLogId } = frogStateReference.current
     const newPosition = {
       x: Math.round(position.x),
       y: Math.round(position.y),
@@ -403,7 +422,7 @@ function Game({ debugMode }: { debugMode?: boolean }) {
       !isFrogOnLog(
         newPosition,
         onLogId,
-        gameStateRef.current.obstacles.map((o) => ({
+        gameStateReference.current.obstacles.map((o) => ({
           ...o,
           position: {
             x: Math.round(o.position.x),
@@ -418,7 +437,7 @@ function Game({ debugMode }: { debugMode?: boolean }) {
       return
     }
 
-    const logCollision = gameStateRef.current.obstacles.find(
+    const logCollision = gameStateReference.current.obstacles.find(
       (obstacle) =>
         obstacle.type === 'log' &&
         newPosition.x >= Math.round(obstacle.position.x) &&
@@ -467,9 +486,14 @@ function Game({ debugMode }: { debugMode?: boolean }) {
     return (
       <MainMenu
         onStart={() => {
-          setGameState((prevState) => ({ ...prevState, gameStatus: 'playing' }))
+          setGameState((previousState) => ({
+            ...previousState,
+            gameStatus: 'playing',
+          }))
         }}
-        onExit={() => exit()}
+        onExit={() => {
+          exit()
+        }}
       />
     )
   }
@@ -480,7 +504,9 @@ function Game({ debugMode }: { debugMode?: boolean }) {
         score={gameState.score}
         highScores={highScores}
         onRestart={restartGame}
-        onExit={() => exit()}
+        onExit={() => {
+          exit()
+        }}
       />
     )
   }
@@ -491,14 +517,14 @@ function Game({ debugMode }: { debugMode?: boolean }) {
 
   return (
     <FullSizeBox>
-      {renderBoard(
-        frogState.position,
-        gameState.obstacles,
-        gameState.score,
-        getCurrentLevelConfig(),
-        gameState.livesRemaining,
-        gameState.timeElapsed
-      )}
+      {renderBoard({
+        frogPosition: frogState.position,
+        obstacles: gameState.obstacles,
+        score: gameState.score,
+        config: getCurrentLevelConfig(),
+        currentLives: gameState.livesRemaining,
+        timeElapsed: gameState.timeElapsed,
+      })}
     </FullSizeBox>
   )
 }

@@ -1,11 +1,11 @@
-import os from 'os'
-import path from 'path'
+import os from 'node:os'
+import path from 'node:path'
 
 export const getSaveDirectory = () => {
-  const homeDir = os.homedir()
+  const homeDirectory = os.homedir()
   if (process.platform === 'win32') {
-    return path.join(homeDir, 'AppData', 'Roaming', 'potion-wars')
-  } else {
-    return path.join(homeDir, '.config', 'potion-wars')
+    return path.join(homeDirectory, 'AppData', 'Roaming', 'potion-wars')
   }
+
+  return path.join(homeDirectory, '.config', 'potion-wars')
 }

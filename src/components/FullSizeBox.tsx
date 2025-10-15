@@ -1,12 +1,12 @@
-import { Box, BoxProps } from 'ink'
+import { Box, type BoxProps } from 'ink'
 import React from 'react'
 import { useStdoutDimensions } from '../hooks/useStdOutDimensions.js'
 
-interface FullSizeBoxProps extends BoxProps {
-  children: React.ReactNode
-}
+type FullSizeBoxProperties = {
+  readonly children: React.ReactNode
+} & BoxProps
 
-function FullSizeBox({ children, ...rest }: FullSizeBoxProps) {
+function FullSizeBox({ children, ...rest }: FullSizeBoxProperties) {
   const [rows, columns] = useStdoutDimensions()
 
   return (

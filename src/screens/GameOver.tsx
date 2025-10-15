@@ -1,9 +1,9 @@
 import { Box, Text, useInput } from 'ink'
-import React from 'react'
+import React, { useState } from 'react'
 import FullSizeBox from '../components/FullSizeBox.js'
 import { GAME_OVER_FROG_ART } from '../constants.js'
 
-interface HighScore {
+type HighScore = {
   name: string
   score: number
 }
@@ -19,7 +19,7 @@ function GameOver({
   readonly onRestart: () => void
   readonly onExit: () => void
 }) {
-  const [displayHighScores, toggleDisplayHighScores] = React.useState(false)
+  const [displayHighScores, setDisplayHighScores] = useState(false)
 
   useInput((input, key) => {
     if (input.toLowerCase() === 'r') {
@@ -31,7 +31,7 @@ function GameOver({
     ) {
       onExit()
     } else if (input.toLowerCase() === 's') {
-      toggleDisplayHighScores(!displayHighScores)
+      setDisplayHighScores((previous) => !previous)
     }
   })
 
@@ -39,11 +39,11 @@ function GameOver({
     <FullSizeBox>
       {displayHighScores ? (
         <Box
+          borderDimColor
           marginTop={1}
           flexDirection="column"
           alignItems="center"
           borderStyle="single"
-          borderDimColor
           paddingX={1}
         >
           <Text bold>High Scores:</Text>
@@ -66,7 +66,7 @@ function GameOver({
         </Box>
       ) : (
         <>
-          <Text bold color="green" dimColor>
+          <Text bold dimColor color="green">
             {GAME_OVER_FROG_ART}
           </Text>
           <Text bold>Game Over</Text>

@@ -1,11 +1,11 @@
-import { LevelConfig } from '../levelConfig.js'
+import { type LevelConfig } from '../levelConfig.js'
 import { type Obstacle, type Position } from '../types.js'
 
 export const checkCarCollision = (
   position: Position,
   obstacles: Obstacle[],
   _config: LevelConfig,
-  tolerance: number = 0
+  tolerance = 0
 ): boolean => {
   return obstacles.some(
     (obstacle) =>
@@ -20,11 +20,12 @@ export const checkLogCollision = (
   position: Position,
   obstacles: Obstacle[],
   config: LevelConfig,
-  tolerance: number = 0
+  tolerance = 0
 ): Obstacle | undefined => {
   return obstacles.find(
     (obstacle) =>
-      (obstacle.type === 'log' || (config.hasAlligators && obstacle.type === 'alligator')) &&
+      (obstacle.type === 'log' ||
+        (config.hasAlligators && obstacle.type === 'alligator')) &&
       position.x + tolerance >= obstacle.position.x &&
       position.x - tolerance < obstacle.position.x + obstacle.length &&
       obstacle.position.y === position.y
@@ -67,5 +68,8 @@ export const checkWinCondition = (
   position: Position,
   config: LevelConfig
 ): boolean => {
-  return position.y === 0 && position.x % Math.floor(config.width / (config.lilypadDensity * 10)) === 0
+  return (
+    position.y === 0 &&
+    position.x % Math.floor(config.width / (config.lilypadDensity * 10)) === 0
+  )
 }

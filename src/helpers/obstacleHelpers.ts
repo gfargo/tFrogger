@@ -1,4 +1,4 @@
-import { LevelConfig } from '../levelConfig.js'
+import { type LevelConfig } from '../levelConfig.js'
 import { type Obstacle } from '../types.js'
 
 export const initializeObstacles = (config: LevelConfig): Obstacle[] => {

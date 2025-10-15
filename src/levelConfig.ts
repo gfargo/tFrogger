@@ -1,6 +1,6 @@
 import { BOARD_HEIGHT, BOARD_WIDTH } from './constants.js'
 
-export interface LevelConfig {
+export type LevelConfig = {
   name?: string | number
   width: number
   height: number
@@ -11,7 +11,7 @@ export interface LevelConfig {
   maxLogLength: number
   riverWidth: number
   lilypadDensity: number
-  timeLimit: number | null
+  timeLimit: number | undefined
   pointMultiplier: number
   livesCount: number
   hasAlligators: boolean
